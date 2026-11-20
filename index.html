@@ -613,11 +613,28 @@ async function genGroq(inp){
   const key=$('#groq-key').value.trim();if(!key)throw new Error('Groq APIキーを入力してください');
   if(!/^gsk_/.test(key))throw new Error('Groqのキーは「gsk_」で始まります。入力したキーを確認してください（GeminiやOpenRouterのキーではありません）');
   const model=$('#groq-model').value.trim()||'llama-3.3-70b-versatile';
-  let res;
-  try{res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'user',content:buildPrompt(inp,false)}],temperature:.8})})}
-  catch(e){throw new Error('Groqに接続できませんでした。Claudeの中で開いている場合は接続できません。公開ページか、HTMLファイルを直接開いて使ってください。')}
-  const j=await res.json().catch(()=>({}));
-  if(!res.ok){const m=j.error?.message||res.status;throw new Error('Groqのエラー: '+m+(res.status===429?'\n（無料枠の回数上限です。時間をおいてください）':''))}
+  const call=async m=>{
+    let r;
+    try{r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:m,messages:[{role:'user',content:buildPrompt(inp,false)}],temperature:.8})})}
+    catch(e){throw new Error('Groqに接続できませんでした。Claudeの中で開いている場合は接続できません。公開ページか、HTMLファイルを直接開いて使ってください。')}
+    return{r,j:await r.json().catch(()=>({}))};
+  };
+  let {r:res,j}=await call(model);
+  /* モデルが無い／権限が無いときは、キーで使えるモデルを調べて選び直す */
+  if(!res.ok&&(res.status===404||j.error?.code==='model_not_found')){
+    try{
+      const ml=await (await fetch('https://api.groq.com/openai/v1/models',{headers:{'Authorization':'Bearer '+key}})).json();
+      const ids=(ml.data||[]).map(x=>x.id).filter(id=>!/whisper|guard|tts|playai|orpheus|distil|embed|safeguard/i.test(id)&&id!==model);
+      const pref=['llama-3.3-70b-versatile','openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'];
+      const order=[...pref.filter(x=>ids.includes(x)),...ids.filter(x=>!pref.includes(x))];
+      for(const m of order.slice(0,3)){
+        const x=await call(m);
+        if(x.r.ok){res=x.r;j=x.j;$('#groq-model').value=m;store.set('groqmodel',m);break}
+        if(x.r.status!==404&&x.j.error?.code!=='model_not_found'){res=x.r;j=x.j;break}
+      }
+    }catch(e){}
+  }
+  if(!res.ok){const m=j.error?.message||res.status;throw new Error('Groqのエラー: '+m+(res.status===429?'\n（無料枠の回数上限です。時間をおいてください）':'')+(res.status===404?'\n（使えるモデルが見つかりませんでした。console.groq.com/docs/models で名前を確認し、モデル名欄に入力してください）':''))}
   const text=j.choices?.[0]?.message?.content||'';
   const raw=parseJSONLoose(text);const t=sanitize(raw,inp,'groq');
   t.facts.unshift('使われたモデル: '+(j.model||model));
