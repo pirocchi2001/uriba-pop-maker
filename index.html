@@ -114,7 +114,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
   </div>
   <label class="f"><input type="checkbox" id="in-offcopy"> 公式キャッチコピーを使ってよい <span class="hint">（オフのときはオリジナル文言だけにします）</span></label>
 
-  <label class="f"><input type="checkbox" id="in-genmotif" checked> モチーフを画像生成AIで自動生成する <span class="hint">（Pollinations・無料・キー不要。3枚で1〜2分かかることがあります。失敗したら内蔵の汎用モチーフだけで続けます）</span></label>
+  <label class="f"><input type="checkbox" id="in-genart" checked> 背景アートを自動で描く <span class="hint">（パレットの色で、やわらかいにじみ・ボケ・きらめきの背景を自動生成。通信なし・無料。物や人は描きません。オフにすると無地＋模様の背景になります）</span></label>
 
   <label class="f">テーマの作り方</label>
   <div class="seg" id="in-engine">
@@ -210,7 +210,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
 <section id="sec-out" hidden>
   <h2><span class="n">4</span>書き出し</h2>
   <table class="tbl" id="out-tbl"></table>
-  <label class="f"><input type="checkbox" id="out-ok"> 参照したページと選ばれたモチーフを確認しました（画像生成AIの絵が既存キャラクターに似ていないこと、公式ロゴ・公式画像が入っていないこと、文言のキャラクター名が使用許諾の範囲内であることを確認しました）</label>
+  <label class="f"><input type="checkbox" id="out-ok"> 参照したページと選ばれたモチーフを確認しました（公式ロゴ・公式画像が入っていないこと、文言のキャラクター名が使用許諾の範囲内であることを確認しました）</label>
   <div class="btns">
     <button class="btn" id="btn-export" disabled>JPEGをZIPで書き出す</button>
     <span class="status" id="out-status"></span>
@@ -375,63 +375,16 @@ function motifSVG(id,x,y,size,cols,rot=0){
   return`<g transform="translate(${(x-size/2).toFixed(1)} ${(y-size/2).toFixed(1)}) rotate(${rot} ${size/2} ${size/2}) scale(${(size/100).toFixed(4)})">${m.f(cols)}</g>`;
 }
 
-/* ================= 画像生成AIで作るモチーフ（Pollinations・無料） ================= */
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function registerGenMotif(g){
-  MOTIFS[g.id]={ja:g.ja,gen:true,url:g.url,f:()=>`<use href="#gm_${g.id}" width="100" height="100"/>`};
-}
-function genDefs(){const g=Object.entries(MOTIFS).filter(([,m])=>m.gen);return g.length?`<defs>${g.map(([id,m])=>`<image id="gm_${id}" width="100" height="100" href="${m.url}"/>`).join('')}</defs>`:''}
-// 白背景を透明にして、ロゴ部分を消し、余白をそろえる
-function cutOutBackground(img){
-  const N=384,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d',{willReadFrequently:true});
-  x.fillStyle='#fff';x.fillRect(0,0,N,N);x.drawImage(img,0,0,N,N);
-  x.fillStyle='#fff';x.fillRect(N*.62,N*.9,N*.38,N*.1);            // 右下の「pollinations.ai」ロゴを消す
-  const d=x.getImageData(0,0,N,N),a=d.data,seen=new Uint8Array(N*N),st=[];
-  const bgLike=i=>a[i]>228&&a[i+1]>228&&a[i+2]>228;
-  const push=(px,py)=>{if(px<0||py<0||px>=N||py>=N)return;const k=py*N+px;if(seen[k])return;if(!bgLike(k*4))return;seen[k]=1;st.push(k)};
-  for(let i=0;i<N;i++){push(i,0);push(i,N-1);push(0,i);push(N-1,i)}
-  while(st.length){const k=st.pop(),px=k%N,py=(k-px)/N;a[k*4+3]=0;push(px+1,py);push(px-1,py);push(px,py+1);push(px,py-1)}
-  // 縁をなめらかに（背景に隣接する半端な白を薄くする）
-  for(let py=1;py<N-1;py++)for(let px=1;px<N-1;px++){const k=py*N+px;if(a[k*4+3]===0)continue;
-    if(a[(k-1)*4+3]===0||a[(k+1)*4+3]===0||a[(k-N)*4+3]===0||a[(k+N)*4+3]===0){const m=Math.min(a[k*4],a[k*4+1],a[k*4+2]);if(m>190)a[k*4+3]=Math.max(0,Math.round((255-m)*4))}}
-  let x1=N,y1=N,x2=0,y2=0;
-  for(let py=0;py<N;py++)for(let px=0;px<N;px++)if(a[(py*N+px)*4+3]>40){if(px<x1)x1=px;if(px>x2)x2=px;if(py<y1)y1=py;if(py>y2)y2=py}
-  if(x2<=x1||y2<=y1)throw new Error('絵が見つかりませんでした');
-  x.putImageData(d,0,0);
-  const w=x2-x1+1,h=y2-y1+1,sc=Math.min(84/w,84/h),o=document.createElement('canvas');o.width=o.height=256;
-  const ox=o.getContext('2d');const dw=w*sc*2.56,dh=h*sc*2.56;ox.drawImage(c,x1,y1,w,h,(256-dw)/2,(256-dh)/2,dw,dh);
-  return o.toDataURL('image/png');
-}
-async function fetchGenImage(subject,seed,onWait){
-  const prompt=subject+', cute flat vector sticker illustration, single object, centered, thick clean outline, simple bright shapes, pure white background, no text, no logo, generic design, not a copyrighted character';
-  const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=512&height=512&nologo=true&seed='+seed;
-  for(let n=0;n<4;n++){
-    const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),70000);
-    let res;try{res=await fetch(url,{signal:ac.signal})}catch(e){clearTimeout(tm);throw new Error('接続できませんでした')}clearTimeout(tm);
-    if(res.ok&&/image/.test(res.headers.get('content-type')||'')){
-      const b=await res.blob(),u=URL.createObjectURL(b);
-      try{const img=new Image();await new Promise((r,j)=>{img.onload=r;img.onerror=()=>j(new Error('画像を読めませんでした'));img.src=u});return cutOutBackground(img)}finally{URL.revokeObjectURL(u)}
-    }
-    const j=await res.json().catch(()=>({}));
-    if(res.status===402||res.status===429){const w=Math.min(50,Math.max(6,parseFloat(/after (\d+)/.exec(j.error?.message||'')?.[1])||15));onWait&&onWait(w);await sleep(w*1000+1500);continue}
-    throw new Error(j.error?.message||('エラー '+res.status));
-  }
-  throw new Error('無料枠の待ち時間が続いています');
-}
-async function addGeneratedMotifs(t,inp,setMsg){
-  for(const k of Object.keys(MOTIFS))if(MOTIFS[k].gen)delete MOTIFS[k];
-  const subs=(t.customMotifs&&t.customMotifs.length?t.customMotifs:t.motifs.slice(0,3).map(id=>MOTIFS[id]?.ja).filter(Boolean)).slice(0,3);
-  const out=[],fails=[];
-  for(let i=0;i<subs.length;i++){
-    setMsg(`モチーフを画像生成AIで作成中…（${i+1}/${subs.length}：${subs[i]}）`);
-    try{
-      const url=await fetchGenImage(subs[i],Math.floor(Math.random()*1e6),w=>setMsg(`無料枠の順番待ち（約${Math.round(w)}秒）…（${i+1}/${subs.length}：${subs[i]}）`));
-      const g={id:'gen'+(i+1),ja:subs[i],url};registerGenMotif(g);out.push(g)
-    }catch(e){fails.push(subs[i]+'（'+(e.message||e)+'）')}
-  }
-  t.gen=out;t.motifs=[...out.map(g=>g.id),...t.motifs.filter(id=>!id.startsWith('gen'))].slice(0,8);
-  if(fails.length)t.rejected.push('画像生成に失敗（内蔵モチーフで代用）: '+fails.join('、'));
-  return t;
+/* ================= 背景アート（パレットから自動で描く。通信不要・拡大しても鮮明） ================= */
+// 大きなにじみ色・ボケ玉・きらめきを重ねたやわらかい背景。物や人は描かない（キャラクターに似ない）。
+function artLayer(T,W,H,key){
+  const R=rng(hashStr(T.name+'art'+key)),cs=T.palette.colors&&T.palette.colors.length?T.palette.colors:[T.palette.main,T.palette.sub,T.palette.accent];
+  const m=Math.min(W,H),n=Math.max(W,H)/m,ids=cs.map(()=>uid('ag')),wid=uid('aw');
+  let s=`<defs>${cs.map((c,i)=>`<radialGradient id="${ids[i]}"><stop offset="0" stop-color="${c}" stop-opacity=".62"/><stop offset=".6" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`).join('')}<radialGradient id="${wid}"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset=".7" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity=".06"/></radialGradient></defs>`;
+  const nb=Math.round(4+n*3);for(let i=0;i<nb;i++){const r=m*(.55+R()*.7);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${ids[i%ids.length]})"/>`}
+  const nk=Math.round(10+n*10);for(let i=0;i<nk;i++){const r=m*(.025+R()*.07);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${wid})" stroke="#fff" stroke-opacity=".45" stroke-width="${(m*.004).toFixed(2)}"/>`}
+  const ns=Math.round(3+n*3);s+=`<g opacity=".75">`;for(let i=0;i<ns;i++)s+=motifSVG('sparkle',R()*W,R()*H,m*(.05+R()*.05),['#fff','#fff'],R()*40);
+  return s+`</g>`;
 }
 
 /* ================= キーワード辞書（ローカル生成用） ================= */
@@ -596,7 +549,6 @@ const SCHEMA_TXT=`{
  "pattern":"${Object.keys(PATTERNS).join('|')}","top":"${Object.keys(TOPS).join('|')}","bottom":"${Object.keys(BOTTOMS).join('|')}",
  "stitch":true/false,"splash":true/false,
  "copy":{"title":"商品名(表示用)","catch":"キャッチコピー(12字以内)","sub":"サブコピー(12字以内)","side":["サイド左(5字以内)","サイド右(5字以内)"],"bottom":"下段のひとこと(12字以内)","rails":["棚ラベル1(4字以内)","棚ラベル2","棚ラベル3"]},
- "customMotifs":["画像生成AIで描く絵の題材を3つ。一般的な物の名前だけ(例: いちごのショートケーキ, 虹色のリボン)。キャラクター名・商品名・ブランド名は入れない"],
  "officialCopy":"公式キャッチコピーの原文(見つからなければ空)",
  "facts":["ページから読み取った特徴(キーカラー・雰囲気・遊び方など)を短く3〜6個"]
 }`;
@@ -639,7 +591,6 @@ function sanitize(raw,inp,engine){
   t.copy.title=inp.name||s(c.title,20,t.copy.title);t.copy.catch=s(c.catch,16,t.copy.catch);t.copy.sub=s(c.sub,16,t.copy.sub);
   if(Array.isArray(c.side))t.copy.side=[s(c.side[0],6,t.copy.side[0]),s(c.side[1],6,t.copy.side[1])];
   t.copy.bottom=s(c.bottom,16,t.copy.bottom);if(Array.isArray(c.rails))t.copy.rails=[0,1,2].map(i=>s(c.rails[i],6,t.copy.rails[i]));
-  t.customMotifs=Array.isArray(raw.customMotifs)?raw.customMotifs.slice(0,3).map(x=>s(x,24,'')).filter(Boolean):[];
   t.officialCopy=s(raw.officialCopy,60,'');t.facts=Array.isArray(raw.facts)?raw.facts.slice(0,8).map(f=>s(f,80,'')).filter(Boolean):[];
   // 文言・テーマ名にキャラクター名が入ってもよい（販売促進用）。モチーフは汎用一覧だけ。
   t.rejected=rej;return t;
@@ -745,7 +696,7 @@ function patternDef(T,id,cell){
 function background(T,W,H,cell=40){
   const P=T.palette,g=uid('bg'),p=uid('pt');
   const pd=patternDef(T,p,cell);
-  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.bg1}"/><stop offset="1" stop-color="${P.bg2}"/></linearGradient>${pd}</defs><rect width="${W}" height="${H}" fill="url(#${g})"/>${pd?`<rect width="${W}" height="${H}" fill="url(#${p})" opacity="${T.pattern==='stripes'?.45:.38}"/>`:''}`;
+  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.bg1}"/><stop offset="1" stop-color="${P.bg2}"/></linearGradient>${pd}</defs><rect width="${W}" height="${H}" fill="url(#${g})"/>${T.art!==false?artLayer(T,W,H,Math.round(W)+'x'+Math.round(H)):''}${pd?`<rect width="${W}" height="${H}" fill="url(#${p})" opacity="${T.art!==false?.2:T.pattern==='stripes'?.45:.38}"/>`:''}`;
 }
 function dripEdge(T,W,band,maxLen,R){
   const cs=T.palette.colors;const n=Math.max(2,Math.round(W/70));const sw=W/n;let s='';
@@ -934,7 +885,7 @@ function gondola(T,n,M){
   s+=`<svg x="${gx+GW}" y="${gy}" width="148.5" height="900" viewBox="0 0 148.5 900">${M.side.R.inner}</svg>`;
   return{W,H,inner:s};
 }
-function svgDoc(m,vb,px){const v=vb||[0,0,m.W,m.H];const wh=px?` width="${px[0]}" height="${px[1]}"`:'';return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${v.join(' ')}"${wh} preserveAspectRatio="none">${genDefs()}${m.inner}</svg>`}
+function svgDoc(m,vb,px){const v=vb||[0,0,m.W,m.H];const wh=px?` width="${px[0]}" height="${px[1]}"`:'';return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${v.join(' ')}"${wh} preserveAspectRatio="none">${m.inner}</svg>`}
 
 /* ================= 画面 ================= */
 let THEME=null,MEDIA=null;
@@ -960,7 +911,7 @@ function renderOutTable(){
 function renderCheck(){
   const T=THEME;const st={ok:['ok','読めた'],ng:['ng','読めなかった'],unread:['mu','未読（ローカル）'],notread:['mu','未読（このAIはページを開けない）'],unknown:['mu','読めたか不明']};
   let h=`<h3>印刷前の確認</h3><div><b>参照したページ</b></div><ul>${T.sources.length?T.sources.map(s=>`<li><span class="tag ${st[s.status]?.[0]||'mu'}">${st[s.status]?.[1]||s.status}</span><span class="tag">${esc(s.role)}</span><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></li>`).join(''):'<li>なし</li>'}</ul>`;
-  h+=`<div><b>選ばれたモチーフ</b>（内蔵の汎用イラスト＋画像生成AIで作った絵）</div><div class="chips">${T.motifs.map(id=>`<span class="chip on">${chipIcon(id)}${MOTIFS[id].ja}</span>`).join('')}</div>`;
+  h+=`<div><b>選ばれたモチーフ</b>（すべてアプリ内蔵の汎用イラスト）</div><div class="chips">${T.motifs.map(id=>`<span class="chip on">${chipIcon(id)}${MOTIFS[id].ja}</span>`).join('')}</div>`;
   if(T.facts&&T.facts.length)h+=`<div style="margin-top:8px"><b>AIが読み取った特徴</b></div><ul>${T.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`;
   if(T.officialCopy)h+=`<div><b>公式キャッチコピー</b>：「${esc(T.officialCopy)}」 ${T.useOfficialCopy?'<span class="tag ok">使用する</span>':'<span class="tag mu">使わない</span>'}</div>`;
   if(T.keywordHits&&T.keywordHits.length&&T.engine==='local')h+=`<div style="margin-top:6px"><b>キーワード辞書</b>：${T.keywordHits.map(esc).join('、')}</div>`;
@@ -968,7 +919,7 @@ function renderCheck(){
   h+=`<div class="hint">公式の画像・ロゴはPOPに入れていません。商品画像は色の分析だけに使っています。</div>`;
   $('#chk').innerHTML=h;
 }
-function chipIcon(id){if(MOTIFS[id].gen)return`<svg viewBox="0 0 100 100"><image width="100" height="100" href="${MOTIFS[id].url}"/></svg>`;return`<svg viewBox="0 0 100 100">${MOTIFS[id].f(['#ff5fa2','#a77bff','#38c7b5','#ffc61a'])}</svg>`}
+function chipIcon(id){return`<svg viewBox="0 0 100 100">${MOTIFS[id].f(['#ff5fa2','#a77bff','#38c7b5','#ffc61a'])}</svg>`}
 function fillThemeForm(){
   const T=THEME;$('#sec-theme').hidden=false;
   $('#th-engine').textContent={local:'（ローカルで作成）',openrouter:'（OpenRouterの無料モデルで作成）',groq:'（Groqで作成）',gemini:'（Geminiで作成）',json:'（JSONから読み込み）'}[T.engine]||'';
@@ -983,7 +934,7 @@ function fillThemeForm(){
   renderCopyAuto();renderCheck();showJSON();
 }
 function renderCopyAuto(){const c=THEME.copy;$('#cp-auto').innerHTML=`<div><b>キャッチ</b>：${esc(c.catch)}　<b>サブ</b>：${esc(c.sub)}</div><div><b>サイド</b>：${esc(c.side[0])}／${esc(c.side[1])}　<b>下段</b>：${esc(c.bottom)}</div><div><b>カードレール</b>：${c.rails.map(esc).join('／')}</div>`}
-function renderMotifChips(){$('#th-motifs').innerHTML=Object.keys(MOTIFS).map(id=>`<button type="button" class="chip${THEME.motifs.includes(id)?' on':''}" data-m="${id}">${chipIcon(id)}${MOTIFS[id].ja}</button>`).join('')}
+function renderMotifChips(){$('#th-motifs').innerHTML=MOTIF_IDS.map(id=>`<button type="button" class="chip${THEME.motifs.includes(id)?' on':''}" data-m="${id}">${chipIcon(id)}${MOTIFS[id].ja}</button>`).join('')}
 function showJSON(){const{...t}=THEME;$('#th-json').textContent=JSON.stringify(t,null,1)}
 let rt=null;function rerender(){clearTimeout(rt);rt=setTimeout(()=>{showJSON();renderCopyAuto();renderCheck();renderPreview()},250)}
 function readForm(){
@@ -1050,8 +1001,7 @@ async function generate(){
     else if(inp.engine==='groq')t=await genGroq(inp);
     else if(inp.engine==='gemini')t=await genGemini(inp);
     else t=localTheme(inp);
-    if($('#in-genmotif').checked){t=await addGeneratedMotifs(t,inp,m=>setStatus('#gen-status',m))}
-    else for(const k of Object.keys(MOTIFS))if(MOTIFS[k].gen)delete MOTIFS[k];
+    t.art=$('#in-genart').checked;
     t=applyOfficialSwitch(t,inp);t.gondolas=inp.gondolas;THEME=t;
     fillThemeForm();renderPreview();$('#out-ok').checked=false;$('#btn-export').disabled=true;
     setStatus('#gen-status','テーマを作りました。下で確認・調整できます。'+(t.rejected.length?`（${t.rejected.length}件を弾きました）`:''),'ok');
