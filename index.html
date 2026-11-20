@@ -208,7 +208,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
 <section id="sec-out" hidden>
   <h2><span class="n">4</span>書き出し</h2>
   <table class="tbl" id="out-tbl"></table>
-  <label class="f"><input type="checkbox" id="out-ok"> 参照したページと選ばれたモチーフを確認しました（キャラクター・公式ロゴ・公式画像は入っていません）</label>
+  <label class="f"><input type="checkbox" id="out-ok"> 参照したページと選ばれたモチーフを確認しました（キャラクターの絵・公式ロゴ・公式画像は入っていません。文言にキャラクター名が入る場合は、使用許諾の範囲か確認しました）</label>
   <div class="btns">
     <button class="btn" id="btn-export" disabled>JPEGをZIPで書き出す</button>
     <span class="status" id="out-status"></span>
@@ -543,7 +543,7 @@ function buildPrompt(inp,forGemini){
   return `あなたは日本の小売店の売場POPを作るアートディレクターです。次の商品から「公式にインスパイアされた、オリジナルの売場テーマ」を設計してください。
 
 # 厳守ルール（著作権への配慮）
-- 公式のロゴ・画像・レイアウト・キャラクターを真似しない。キャラクター名・キャラクターの見た目を出力に含めない。
+- 公式のロゴ・画像・レイアウト・キャラクターの見た目を真似しない（絵のモチーフは下の汎用IDだけ）。販売促進用なので、文言(copy)に商品名・キャラクター名を入れてもよい。
 - motifs は次の汎用モチーフIDの中からだけ選ぶ: ${MOTIF_IDS.map(k=>k+'('+MOTIFS[k].ja+')').join(', ')}
 - 文言(copy)は自分で考えたオリジナル。公式のキャッチコピーは officialCopy に原文のまま別に入れる(copyには入れない)。
 - 子どもにも読みやすい、ひらがな多めの短い文言にする。商品名(copy.title)は入力の商品名をそのまま使う。
@@ -578,10 +578,7 @@ function sanitize(raw,inp,engine){
   if(Array.isArray(c.side))t.copy.side=[s(c.side[0],6,t.copy.side[0]),s(c.side[1],6,t.copy.side[1])];
   t.copy.bottom=s(c.bottom,16,t.copy.bottom);if(Array.isArray(c.rails))t.copy.rails=[0,1,2].map(i=>s(c.rails[i],6,t.copy.rails[i]));
   t.officialCopy=s(raw.officialCopy,60,'');t.facts=Array.isArray(raw.facts)?raw.facts.slice(0,8).map(f=>s(f,80,'')).filter(Boolean):[];
-  // キャラクター名などを弾く
-  const fields=[['catch'],['sub'],['bottom'],['side',0],['side',1],['rails',0],['rails',1],['rails',2]];
-  for(const f of fields){const v=f.length>1?t.copy[f[0]][f[1]]:t.copy[f[0]];const b=blockedIn(v);if(b.length){rej.push('文言にキャラクター名など（'+b.join('・')+'）→ 差し替え');const d=f.length>1?base.copy[f[0]][f[1]]:base.copy[f[0]];if(f.length>1)t.copy[f[0]][f[1]]=d;else t.copy[f[0]]=d}}
-  if(blockedIn(t.name).length){rej.push('テーマ名にキャラクター名など → 差し替え');t.name=base.name}
+  // 文言・テーマ名にキャラクター名が入ってもよい（販売促進用）。モチーフは汎用一覧だけ。
   t.rejected=rej;return t;
 }
 function applyOfficialSwitch(t,inp){
@@ -931,7 +928,6 @@ function readForm(){
   document.querySelectorAll('#th-pal input').forEach(i=>{if(i.dataset.k)T.palette[i.dataset.k]=i.value;else T.palette.colors[+i.dataset.c]=i.value});
   T.pattern=$('#th-pattern').value;T.top=$('#th-top').value;T.bottom=$('#th-bottom').value;T.stitch=$('#th-stitch').checked;T.splash=$('#th-splash').checked;
   const c=T.copy;c.title=$('#cp-title').value;c.catch=$('#cp-catch').value;c.sub=$('#cp-sub').value;c.side=[$('#cp-sideL').value,$('#cp-sideR').value];c.bottom=$('#cp-bottom').value;c.rails=[$('#cp-r1').value,$('#cp-r2').value,$('#cp-r3').value];
-  const bad=[c.catch,c.sub,c.bottom,...c.side,...c.rails,c.title].flatMap(blockedIn);if(bad.length)setStatus('#gen-status','⚠ 文言にキャラクター名などが入っています（'+[...new Set(bad)].join('・')+'）。印刷前に見直してください','err');
 }
 function setStatus(sel,msg,cls=''){const e=$(sel);e.textContent=msg;e.className='status '+cls}
 
