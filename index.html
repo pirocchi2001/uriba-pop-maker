@@ -166,6 +166,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
   <div class="row">
     <div><label class="f">書体</label>
       <select id="th-font"><option value="rounded">丸ゴシック（M PLUS Rounded 1c）</option><option value="gothic">極太ゴシック（Noto Sans JP Black）</option></select></div>
+    <div><label class="f">スタイル（世界観）</label><select id="th-style"></select></div>
     <div><label class="f">背景柄</label><select id="th-pattern"></select></div>
   </div>
   <div class="row">
@@ -318,20 +319,31 @@ function deco(pl,st){
   const gid=uid('tg'),b=pl.box,k=st.k;
   const lay=(a)=>pl.parts.map(p=>`<path d="${p.d}"${p.tf?` transform="${p.tf}"`:''} ${a}/>`).join('');
   const J='stroke-linejoin="round" stroke-linecap="round"';
+  let ext='';if(st.long){const n=st.long.n;for(let i=n;i>=1;i--){const d=k*.2*i;ext+=`<g transform="translate(${d.toFixed(2)},${d.toFixed(2)})">${lay(`fill="${st.long.col}" stroke="${st.long.col}" stroke-width="${(k*1.9).toFixed(2)}" ${J}`)}</g>`}}
+  let glow='';if(st.glow)glow=`<g opacity=".28">${lay(`fill="${st.glow}" stroke="${st.glow}" stroke-width="${(k*6).toFixed(2)}" ${J}`)}</g><g opacity=".4">${lay(`fill="${st.glow}" stroke="${st.glow}" stroke-width="${(k*3.6).toFixed(2)}" ${J}`)}</g>`;
+  let gloss='';if(st.gloss){const cid=uid('gc');gloss=`<clipPath id="${cid}"><rect x="${(b.x1-5).toFixed(1)}" y="${(b.y1-5).toFixed(1)}" width="${(b.x2-b.x1+10).toFixed(1)}" height="${((b.y2-b.y1)*.46+5).toFixed(1)}"/></clipPath><g clip-path="url(#${cid})">${lay(`fill="#fff" opacity=".34"`)}</g>`}
   return `<defs><linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="${b.y1.toFixed(1)}" x2="0" y2="${b.y2.toFixed(1)}"><stop offset="0" stop-color="${st.fill[0]}"/><stop offset="1" stop-color="${st.fill[1]}"/></linearGradient></defs>
-<g>${st.shadow!==false?`<g transform="translate(${(k*.35).toFixed(2)},${(k*.45).toFixed(2)})" opacity=".28">${lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*1.9).toFixed(2)}" ${J}`)}</g>`:''}
+<g>${glow}${ext}${st.shadow!==false?`<g transform="translate(${(k*.35).toFixed(2)},${(k*.45).toFixed(2)})" opacity=".28">${lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*1.9).toFixed(2)}" ${J}`)}</g>`:''}
 ${st.outer!==false?lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*1.9).toFixed(2)}" ${J}`):''}
 ${lay(`fill="${st.white||'#fff'}" stroke="${st.white||'#fff'}" stroke-width="${(k*1.35).toFixed(2)}" ${J}`)}
 ${lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*.5).toFixed(2)}" ${J}`)}
-${lay(`fill="url(#${gid})"`)}</g>`;
+${lay(`fill="url(#${gid})"`)}${gloss}</g>`;
 }
 function textStyle(P,role,size){
-  const k=size*0.12;
-  if(role==='name')return{fill:[lighten(P.main,.35),P.main],ink:P.ink,k};
-  if(role==='catch')return{fill:[lighten(P.sub,.3),P.sub],ink:P.ink,k:k*.9};
-  if(role==='white')return{fill:['#ffffff','#fff4fa'],ink:P.ink,white:P.ink,outer:false,k:k*.8,shadow:false};
-  if(role==='label')return{fill:[P.ink,P.ink],ink:'#ffffff',white:'#ffffff',outer:false,k:k*.5,shadow:false};
-  return{fill:[lighten(P.accent,.2),darken(P.accent,.1)],ink:P.ink,k};
+  const k=size*0.12,ty=CUR?SK(CUR).type:'yume';
+  let o;
+  if(role==='name')o={fill:[lighten(P.main,.35),P.main],ink:P.ink,k};
+  else if(role==='catch')o={fill:[lighten(P.sub,.3),P.sub],ink:P.ink,k:k*.9};
+  else if(role==='white')return{fill:['#ffffff','#fff4fa'],ink:P.ink,white:P.ink,outer:false,k:k*.8,shadow:false};
+  else if(role==='label')return{fill:[P.ink,P.ink],ink:'#ffffff',white:'#ffffff',outer:false,k:k*.5,shadow:false};
+  else o={fill:[lighten(P.accent,.2),darken(P.accent,.1)],ink:P.ink,k};
+  const big=role==='name';
+  if(ty==='yume'&&role!=='accent')o.gloss=true;
+  if(ty==='pop'){o.gloss=true;if(big){o.fill=[lighten(P.main,.3),P.main];o.long={n:8,col:darken(P.main,.4)};o.k=k*1.08}}
+  if(ty==='cool'){o.fill=big?['#ffffff',lighten(P.main,.3)]:[lighten(P.sub,.75),lighten(P.sub,.4)];o.glow=big?P.main:P.sub;o.gloss=true;o.ink=P.ink}
+  if(ty==='wafu'){o.k=k*(big?1.1:1);o.shadow=true;if(big){o.fill=[lighten(P.main,.2),darken(P.main,.1)];o.long={n:5,col:darken(P.accent,.15)}}o.gloss=big}
+  if(ty==='natural'){o.outer=false;o.white='#ffffff';o.k=k*.7;o.fill=[darken(role==='catch'?P.sub:P.main,.12),darken(role==='catch'?P.sub:P.main,.3)];o.ink=darken(P.main,.5);o.shadow=true}
+  return o;
 }
 
 /* ================= 汎用モチーフ一覧（キャラクターは含まない） ================= */
@@ -380,16 +392,47 @@ function motifSVG(id,x,y,size,cols,rot=0){
 
 /* ================= 背景アート（パレットから自動で描く。通信不要・拡大しても鮮明） ================= */
 // 大きなにじみ色・ボケ玉・きらめきを重ねたやわらかい背景。物や人は描かない（キャラクターに似ない）。
-function artLayer(T,W,H,key){
-  const R=rng(hashStr(T.name+'art'+key)),cs=T.palette.colors&&T.palette.colors.length?T.palette.colors:[T.palette.main,T.palette.sub,T.palette.accent];
+function artBokeh(T,W,H,key,opt){
+  const A=(opt&&opt.alpha)||1,R=rng(hashStr(T.name+'art'+key)),cs=(opt&&opt.cols)||(T.palette.colors&&T.palette.colors.length?T.palette.colors:[T.palette.main,T.palette.sub,T.palette.accent]);
   const m=Math.min(W,H),n=Math.max(W,H)/m,ids=cs.map(()=>uid('ag')),wid=uid('aw');
-  let s=`<defs>${cs.map((c,i)=>`<radialGradient id="${ids[i]}"><stop offset="0" stop-color="${c}" stop-opacity=".62"/><stop offset=".6" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`).join('')}<radialGradient id="${wid}"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset=".7" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity=".06"/></radialGradient></defs>`;
-  const nb=Math.round(4+n*3);for(let i=0;i<nb;i++){const r=m*(.55+R()*.7);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${ids[i%ids.length]})"/>`}
+  let s=`<defs>${cs.map((c,i)=>`<radialGradient id="${ids[i]}"><stop offset="0" stop-color="${c}" stop-opacity="${(.62*A).toFixed(2)}"/><stop offset=".6" stop-color="${c}" stop-opacity="${(.22*A).toFixed(2)}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`).join('')}<radialGradient id="${wid}"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset=".7" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity=".06"/></radialGradient></defs>`;
+  const nb=Math.round((opt&&opt.blobs||4)+n*3);for(let i=0;i<nb;i++){const r=m*(.55+R()*.7);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${ids[i%ids.length]})"/>`}
   const nk=Math.round(10+n*10);for(let i=0;i<nk;i++){const r=m*(.025+R()*.07);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${wid})" stroke="#fff" stroke-opacity=".45" stroke-width="${(m*.004).toFixed(2)}"/>`}
   const ns=Math.round(3+n*3);s+=`<g opacity=".75">`;for(let i=0;i<ns;i++)s+=motifSVG('sparkle',R()*W,R()*H,m*(.05+R()*.05),['#fff','#fff'],R()*40);
   return s+`</g>`;
 }
 
+function artLayer(T,W,H,key){
+  const ty=SK(T).art,P=T.palette,R=rng(hashStr(T.name+'a2'+key)),m=Math.min(W,H),n=Math.max(W,H)/m;
+  const cs=P.colors&&P.colors.length?P.colors:[P.main,P.sub,P.accent];
+  const tri=[P.main,P.sub,P.accent];
+  const AO={bokeh:{},snow:{cols:tri.map(c=>lighten(c,.3)),alpha:.55},watercolor:{cols:tri.map(c=>lighten(c,.45)),alpha:.6},halftone:{cols:tri.map(c=>lighten(c,.45)),alpha:.75},
+    rays:{cols:tri.map(vivid),alpha:.5},seigaiha:{cols:[P.main,P.accent,P.sub].map(c=>lighten(c,.5)),alpha:.55}}[ty]||{};
+  if(ty==='bokeh')return artBokeh(T,W,H,key);
+  if(ty==='snow'){let s=artBokeh(T,W,H,key,{...AO,blobs:2});for(let i=0;i<Math.round(40+n*40);i++){const r=m*(.008+R()*.02);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(1)}" fill="#fff" opacity="${(.5+R()*.4).toFixed(2)}"/>`}return s}
+  if(ty==='watercolor'){let s=artBokeh(T,W,H,key,{...AO,blobs:1}).replace(/<circle[^>]*stroke="#fff"[^>]*\/>/g,'').replace(/<g opacity="\.75">[\s\S]*<\/g>$/,'');for(let i=0;i<Math.round(90+n*120);i++)s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${(m*(.002+R()*.004)).toFixed(2)}" fill="${darken(P.main,.3)}" opacity="${(.08+R()*.12).toFixed(2)}"/>`;return s}
+  if(ty==='halftone'){
+    let s=artBokeh(T,W,H,key,{...AO,blobs:1}).replace(/<circle[^>]*stroke="#fff"[^>]*\/>/g,'').replace(/<g opacity="\.75">[\s\S]*<\/g>$/,'');
+    const st=m*.085,cx=W/2,cy=H/2,dm=Math.hypot(W/2,H/2);let row=0;
+    for(let y=st/2;y<H;y+=st,row++)for(let x=(row%2?st:st/2);x<W;x+=st){const d=Math.hypot(x-cx,y-cy)/dm,t=Math.max(0,Math.min(1,(d-.28)/.55));if(t<.05)continue;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(st*.46*t).toFixed(2)}" fill="${tri[(Math.round(x/st)+row)%tri.length]}" opacity=".42"/>`}
+    return s;
+  }
+  if(ty==='rays'){
+    const cx=W/2,cy=H*1.1,rr=Math.hypot(W,H)*1.2,N=Math.round(18+n*10);let s=`<g opacity=".16">`;
+    for(let i=0;i<N;i+=2){const a0=Math.PI+i/N*Math.PI,a1=Math.PI+(i+1)/N*Math.PI;s+=`<path d="M${cx.toFixed(1)} ${cy.toFixed(1)}L${(cx+rr*Math.cos(a0)).toFixed(1)} ${(cy+rr*Math.sin(a0)).toFixed(1)}L${(cx+rr*Math.cos(a1)).toFixed(1)} ${(cy+rr*Math.sin(a1)).toFixed(1)}Z" fill="${i%4?P.accent:'#fff'}"/>`}
+    s+=`</g>`+artBokeh(T,W,H,key,{...AO,blobs:2}).replace(/<circle[^>]*stroke="#fff"[^>]*\/>/g,'');
+    for(let i=0;i<Math.round(50+n*60);i++){const r=m*(.003+R()*.006);s+=`<circle cx="${(R()*W).toFixed(1)}" cy="${(R()*H).toFixed(1)}" r="${r.toFixed(2)}" fill="#fff" opacity="${(.45+R()*.5).toFixed(2)}"/>`}
+    return s;
+  }
+  if(ty==='seigaiha'){
+    const r=m*.11;let s='';const rows=Math.ceil(H/(r*.5))+2;
+    for(let j=0;j<rows;j++){const y=j*r*.5,off=j%2?r:0;for(let x=-r+off;x<W+r;x+=r*2){
+      s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${P.bg1}"/>`;
+      for(let q=0;q<3;q++)s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r*(1-q*.27)).toFixed(1)}" fill="none" stroke="${P.sub}" stroke-opacity=".34" stroke-width="${(r*.045).toFixed(2)}"/>`}}
+    return `<g opacity=".7">${s}</g>`+artBokeh(T,W,H,key,{...AO,blobs:1}).replace(/<circle[^>]*stroke="#fff"[^>]*\/>/g,'').replace(/<g opacity="\.75">[\s\S]*<\/g>$/,'');
+  }
+  return artBokeh(T,W,H,key);
+}
 /* ================= キーワード辞書（ローカル生成用） ================= */
 const DICT=[
  {keys:['ゆめかわ','ゆめ','夢','パステル','ゆめみ','ファンシー','かわいい','カワイイ','可愛い','女の子','ガーリー'],name:'ゆめかわパステル',mood:'パステルのペンキとリボンでつくる、ときめく売場',font:'rounded',
@@ -483,9 +526,37 @@ function autoCopy(name,hits,seed){
 
 const KW_SUGGEST=['ゆめかわ','キラキラ','コスメ','スイーツ','スライム','プリンセス','ポップ','クール','ナチュラル','宇宙','海','新入学','クリスマス','和'];
 
+/* ================= スタイル（世界観ごとのデザインの約束事） ================= */
+const STYLES={
+ yume:{ja:'ゆめかわ・コスメ・スイーツ',font:'rounded',type:'yume',frame:'stitch',banner:'satin',badge:'flower',art:'bokeh',top:'drip',bottom:'lace',pattern:'dots',dark:false},
+ pop:{ja:'ポップ・スライム・ゲーム',font:'gothic',type:'pop',frame:'double',banner:'pennant',badge:'star',art:'halftone',top:'zigzag',bottom:'zigzag',pattern:'dots',dark:false},
+ cool:{ja:'宇宙・ステージ・かっこいい',font:'gothic',type:'cool',frame:'double',banner:'pennant',badge:'ring',art:'rays',top:'none',bottom:'zigzag',pattern:'none',dark:true},
+ wafu:{ja:'和・新学期・お祝い',font:'gothic',type:'wafu',frame:'double',banner:'tab',badge:'ring',art:'seigaiha',top:'none',bottom:'scallop',pattern:'none',dark:false},
+ natural:{ja:'ナチュラル・海・森',font:'rounded',type:'natural',frame:'double',banner:'tab',badge:'ring',art:'watercolor',top:'none',bottom:'scallop',pattern:'none',dark:false},
+ xmas:{ja:'クリスマス・季節催事',font:'rounded',type:'pop',frame:'ticket',banner:'satin',badge:'star',art:'snow',top:'scallop',bottom:'scallop',pattern:'none',dark:false}
+};
+const STYLE_OF={'ゆめかわパステル':'yume','キラキラジュエル':'yume','おしゃれコスメ':'yume','スイートパーティ':'yume','ロイヤルプリンセス':'yume',
+ 'ぷにぷにスライム':'pop','カラフルポップ':'pop','ほしぞらギャラクシー':'cool','ナイトパーティ':'cool','ステージライト':'cool','クールパワー':'cool',
+ 'さくら新学期':'wafu','はなやか和モダン':'wafu','さわやかマリン':'natural','ナチュラルグリーン':'natural','ホリデーギフト':'xmas'};
+let CUR=null;   // いま描いているテーマ（文字の仕上げなどが参照する）
+const SK=T=>STYLES[T&&T.style]||STYLES.yume;
+function lum(hex){const c=h2r(hex).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function contrast(a,b){const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
+function shadowExtra(P,size){const o=textStyle(P,'name',size);return o.long?o.long.n*.2*o.k:0}
+function bandCol(P){let c=P.main;for(let i=0;i<24&&contrast(c,'#ffffff')<2.6;i++)c=darken(c,.07);return c}   // 白文字をのせる帯の色
+// 生成直後に配色を整える（コントラスト・背景の明るさ）。AIの色が変でもここで直る
+function harmonize(T){
+  const P=T.palette,st=SK(T);
+  if(st.dark){const h1=hsl(P.main)[0],h2=hsl(P.sub)[0];if(lum(P.bg1)>.12){P.bg1=hsl2h(h1,.5,.2);P.bg2=hsl2h(h2,.55,.1)}P.ink=hsl2h(h1,.55,.1)}
+  else{
+    if(lum(P.bg1)<.6)P.bg1=lighten(P.bg1,.7);if(lum(P.bg2)<.45)P.bg2=lighten(P.bg2,.6);
+    for(let i=0;i<24&&(contrast(P.ink,'#ffffff')<7||contrast(P.ink,P.main)<4);i++)P.ink=darken(P.ink,.08);
+  }
+  return T;
+}
 const PATTERNS={hearts:'ハート柄',dots:'水玉',stars:'星柄',sparkle:'きらきら柄',stripes:'ストライプ',check:'チェック',none:'なし'};
-const TOPS={drip:'ペンキのしずく',scallop:'波形（スカラップ）',none:'なし'};
-const BOTTOMS={lace:'レース',scallop:'波形（スカラップ）',none:'なし'};
+const TOPS={drip:'ペンキのしずく',scallop:'波形（スカラップ）',zigzag:'ギザギザ',none:'なし'};
+const BOTTOMS={lace:'レース',scallop:'波形（スカラップ）',zigzag:'ギザギザ',none:'なし'};
 
 /* ================= 版権名などの簡易チェック ================= */
 const BLOCK=['キティ','マイメロ','クロミ','シナモロール','シナモン','ポムポム','プリン','ポチャッコ','ハンギョドン','サンリオ','ピカチュウ','ポケモン','ミッキー','ミニー','ディズニー','ドラえもん','アンパンマン','すみっコ','リラックマ','カービィ','マリオ','スヌーピー','ムーミン','ミッフィー','プリキュア','ちいかわ','ハチワレ','うさぎ','ジバニャン','妖怪ウォッチ','セーラームーン','アイカツ','プリパラ','たまごっち','ちびまる子','しまじろう','ぐでたま','キキララ','エルサ','アナと','ラプンツェル','トトロ','ジブリ','ナルト','鬼滅','呪術','ワンピース','ハローキティ'];
@@ -538,14 +609,15 @@ function localTheme(inp){
     if(inp.strength!=='low')P.ink=inkOf(P.main);
   }
   const pick=a=>a[Math.floor(R()*a.length)];
-  return{version:1,engine:'local',name:(hits.length>1?hits.slice(0,2).map(e=>e.name).join('×'):base.name),mood:base.mood,strength:inp.strength,font:hits.find(e=>e.font==='gothic')&&!hits.find(e=>e.font==='rounded')?'gothic':base.font,
-    palette:P,motifs,pattern:base.pattern,top:base.top,bottom:base.bottom,stitch:base.stitch,splash:base.splash,
+  return harmonize({version:1,engine:'local',name:(hits.length>1?hits.slice(0,2).map(e=>e.name).join('×'):base.name),mood:base.mood,strength:inp.strength,font:hits.find(e=>e.font==='gothic')&&!hits.find(e=>e.font==='rounded')?'gothic':base.font,
+    style:STYLE_OF[base.name]||'yume',palette:P,motifs,pattern:base.pattern,top:base.top,bottom:base.bottom,stitch:base.stitch,splash:base.splash,
     copy:autoCopy(inp.name,hits,0),copySeed:0,
     officialCopy:'',sources:[...(inp.official?[{url:inp.official,role:'公式',status:'unread'}]:[]),...inp.refs.map(u=>({url:u,role:'参考',status:'unread'}))],
-    facts:[],rejected:[],keywordHits:hits.map(e=>e.name)};
+    facts:[],rejected:[],keywordHits:hits.map(e=>e.name)});
 }
 const SCHEMA_TXT=`{
  "name":"テーマ名(短く)","mood":"雰囲気の説明(1文)",
+ "style":"${Object.keys(STYLES).join('|')}",
  "font":"rounded|gothic",
  "palette":{"bg1":"#RRGGBB","bg2":"#RRGGBB","main":"#RRGGBB","sub":"#RRGGBB","accent":"#RRGGBB","ink":"#RRGGBB(濃い縁取り色)","colors":["#RRGGBB" x6 (ペンキ・虹などの多色)]},
  "pattern":"${Object.keys(PATTERNS).join('|')}","top":"${Object.keys(TOPS).join('|')}","bottom":"${Object.keys(BOTTOMS).join('|')}",
@@ -582,6 +654,7 @@ function buildPrompt(inp,forGemini){
 
 # 厳守ルール（著作権への配慮）
 - 公式のロゴ・画像・レイアウト・キャラクターの見た目を真似しない。販売促進用なので、文言(copy)に商品名・キャラクター名を入れてもよい。
+- style は商品の世界観に合うものを1つ選ぶ: ${Object.entries(STYLES).map(([k,v])=>k+'('+v.ja+')').join(' / ')}。配色も style に合わせる（cool は暗い背景色にする）。
 - 文言(copy)は自分で考えたオリジナル。公式のキャッチコピーは officialCopy に原文のまま別に入れる(copyには入れない)。
 - 子どもにも読みやすい、ひらがな多めの短い文言にする。商品名(copy.title)は入力の商品名をそのまま使う。
 - 参考にする強さ: ${st}
@@ -604,7 +677,7 @@ function parseJSONLoose(t){if(typeof t==='object')return t;t=String(t).replace(/
 function sanitize(raw,inp,engine){
   const base=localTheme(inp);const t=JSON.parse(JSON.stringify(base));t.engine=engine;const rej=[];
   const s=(v,max,d)=>{v=typeof v==='string'?v.trim():'';if(!v)return d;return Array.from(v).slice(0,max).join('')};
-  t.name=s(raw.name,24,t.name);t.mood=s(raw.mood,60,t.mood);t.font=raw.font==='gothic'?'gothic':'rounded';
+  t.name=s(raw.name,24,t.name);t.mood=s(raw.mood,60,t.mood);t.font=raw.font==='gothic'?'gothic':'rounded';if(STYLES[raw.style])t.style=raw.style;
   const rp=raw.palette||{};for(const k of['bg1','bg2','main','sub','accent','ink']){const v=okHex(rp[k],null);if(v)t.palette[k]=v;else if(rp[k])rej.push('色の値 '+k+'='+rp[k])}
   if(Array.isArray(rp.colors)){const cs=rp.colors.map(c=>okHex(c,null)).filter(Boolean);if(cs.length>=3)t.palette.colors=cs.slice(0,6)}
   if(Array.isArray(raw.motifs)){const ok=[];for(let m of raw.motifs){m=String(m).trim();const id=MOTIFS[m]?m:JA2ID[m];if(id&&!ok.includes(id))ok.push(id);else if(!id)rej.push('一覧にないモチーフ「'+m+'」')}if(ok.length)t.motifs=ok.slice(0,8)}
@@ -616,7 +689,7 @@ function sanitize(raw,inp,engine){
   t.copy.bottom=s(c.bottom,16,t.copy.bottom);if(Array.isArray(c.rails))t.copy.rails=[0,1,2].map(i=>s(c.rails[i],6,t.copy.rails[i]));
   t.officialCopy=s(raw.officialCopy,60,'');t.facts=Array.isArray(raw.facts)?raw.facts.slice(0,8).map(f=>s(f,80,'')).filter(Boolean):[];
   // 文言・テーマ名にキャラクター名が入ってもよい（販売促進用）。モチーフは汎用一覧だけ。
-  t.rejected=rej;return t;
+  t.rejected=rej;harmonize(t);return t;
 }
 function applyOfficialSwitch(t,inp){
   t.useOfficialCopy=!!inp.officialCopy;
@@ -716,10 +789,15 @@ function patternDef(T,id,cell){
     case'check':return`<pattern id="${id}" width="${cell*.6}" height="${cell*.6}" patternUnits="userSpaceOnUse"><rect width="${cell*.3}" height="${cell*.6}" fill="${a}" opacity=".5"/><rect width="${cell*.6}" height="${cell*.3}" fill="${a}" opacity=".5"/></pattern>`;
   }return'';
 }
+// 文字の後ろの背景を静めるベール（読みやすさ優先）
+function veil(T,W,H){
+  const id=uid('vl'),col=SK(T).dark?T.palette.bg2:'#ffffff',tall=H>W;
+  return`<defs><radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".62"/><stop offset=".65" stop-color="${col}" stop-opacity=".3"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs><ellipse cx="${W/2}" cy="${H/2}" rx="${(tall?W*.72:W*.4).toFixed(1)}" ry="${(tall?H*.42:H*.52).toFixed(1)}" fill="url(#${id})"/>`;
+}
 function background(T,W,H,cell=40){
   const P=T.palette,g=uid('bg'),p=uid('pt');
   const pd=patternDef(T,p,cell);
-  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.bg1}"/><stop offset="1" stop-color="${P.bg2}"/></linearGradient>${pd}</defs><rect width="${W}" height="${H}" fill="url(#${g})"/>${T.art!==false?artLayer(T,W,H,Math.round(W)+'x'+Math.round(H)):''}${pd?`<rect width="${W}" height="${H}" fill="url(#${p})" opacity="${T.art!==false?.2:T.pattern==='stripes'?.45:.38}"/>`:''}`;
+  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.bg1}"/><stop offset="1" stop-color="${P.bg2}"/></linearGradient>${pd}</defs><rect width="${W}" height="${H}" fill="url(#${g})"/>${T.art!==false?artLayer(T,W,H,Math.round(W)+'x'+Math.round(H))+veil(T,W,H):''}${pd?`<rect width="${W}" height="${H}" fill="url(#${p})" opacity="${T.art!==false?.2:T.pattern==='stripes'?.45:.38}"/>`:''}`;
 }
 function dripEdge(T,W,band,maxLen,R){
   const cs=T.palette.colors;const n=Math.max(2,Math.round(W/70));const sw=W/n;let s='';
@@ -747,10 +825,21 @@ function lace(T,W,H,h,white=true){
   if(white)s+=`<line x1="0" y1="${(top+r*1.75).toFixed(1)}" x2="${W}" y2="${(top+r*1.75).toFixed(1)}" stroke="${T.palette.main}" stroke-width="${(h*.05).toFixed(2)}" stroke-dasharray="${(h*.12).toFixed(1)} ${(h*.09).toFixed(1)}" stroke-linecap="round"/>`;
   return s;
 }
-function bottomEdge(T,W,H,h){if(T.bottom==='lace')return lace(T,W,H,h,true);if(T.bottom==='scallop')return lace(T,W,H,h*.8,false);return''}
-function topEdge(T,W,h,R){if(T.top==='drip')return dripEdge(T,W,h*.5,h*.9,R);if(T.top==='scallop')return scallopTop(T,W,h*.6);return''}
-function topEdgeDepth(T,h){return T.top==='drip'?h*1.4:T.top==='scallop'?h*.6:0}
-function stitch(T,W,H,ins,sw){return T.stitch?`<rect x="${ins}" y="${ins}" width="${W-ins*2}" height="${H-ins*2}" rx="${ins*1.2}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-dasharray="${sw*3} ${sw*2.2}" stroke-linecap="round" opacity=".95"/>`:''}
+function bottomEdge(T,W,H,h){if(T.bottom==='zigzag')return zigzagBottom(T,W,H,h);if(T.bottom==='lace')return lace(T,W,H,h,true);if(T.bottom==='scallop')return lace(T,W,H,h*.8,false);return''}
+function zigzagTop(T,W,h){const P=T.palette,tw=h*.9,n=Math.ceil(W/tw);let d=`M0 0H${W}V${(h*.45).toFixed(1)}`;for(let i=n;i>=0;i--){const x=i*tw;d+=`L${(x-tw/2).toFixed(1)} ${(h*.45+h*.5).toFixed(1)}L${(x-tw).toFixed(1)} ${(h*.45).toFixed(1)}`}
+  return`<path d="${d}Z" fill="${P.main}"/><rect y="${(h*.32).toFixed(1)}" width="${W}" height="${(h*.07).toFixed(1)}" fill="#fff" opacity=".6"/>`}
+function zigzagBottom(T,W,H,h){const P=T.palette,tw=h*.9,n=Math.ceil(W/tw),top=H-h;let d=`M0 ${H}V${(top+h*.5).toFixed(1)}`;for(let i=0;i<=n;i++){const x=i*tw;d+=`L${(x+tw/2).toFixed(1)} ${top.toFixed(1)}L${(x+tw).toFixed(1)} ${(top+h*.5).toFixed(1)}`}
+  return`<path d="${d}V${H}Z" fill="${P.main}"/><rect y="${(top+h*.58).toFixed(1)}" width="${W}" height="${(h*.07).toFixed(1)}" fill="#fff" opacity=".55"/>`}
+function topEdge(T,W,h,R){if(T.top==='drip')return dripEdge(T,W,h*.5,h*.9,R);if(T.top==='scallop')return scallopTop(T,W,h*.6);if(T.top==='zigzag')return zigzagTop(T,W,h*.9);return''}
+function topEdgeDepth(T,h){return T.top==='drip'?h*1.4:T.top==='scallop'?h*.6:T.top==='zigzag'?h*.95:0}
+function stitch(T,W,H,ins,sw){
+  if(!T.stitch)return'';
+  const fr=SK(T).frame,P=T.palette,col=SK(T).dark?P.accent:'#fff',w=W-ins*2,h=H-ins*2;
+  if(fr==='double')return`<rect x="${ins}" y="${ins}" width="${w}" height="${h}" rx="${ins*.3}" fill="none" stroke="${col}" stroke-width="${(sw*1.7).toFixed(2)}" opacity=".95"/><rect x="${(ins+sw*3.4).toFixed(2)}" y="${(ins+sw*3.4).toFixed(2)}" width="${(w-sw*6.8).toFixed(2)}" height="${(h-sw*6.8).toFixed(2)}" rx="${ins*.15}" fill="none" stroke="${col}" stroke-width="${(sw*.6).toFixed(2)}" opacity=".85"/>`;
+  if(fr==='ticket'){const r=ins*1.25,x1=ins,y1=ins,x2=W-ins,y2=H-ins;
+    return`<path d="M${x1+r} ${y1}H${x2-r}A${r} ${r} 0 0 0 ${x2} ${y1+r}V${y2-r}A${r} ${r} 0 0 0 ${x2-r} ${y2}H${x1+r}A${r} ${r} 0 0 0 ${x1} ${y2-r}V${y1+r}A${r} ${r} 0 0 0 ${x1+r} ${y1}Z" fill="none" stroke="#fff" stroke-width="${sw*1.2}" stroke-dasharray="${sw*3} ${sw*2}" stroke-linecap="round" opacity=".95"/>`}
+  return`<rect x="${ins}" y="${ins}" width="${w}" height="${h}" rx="${ins*1.2}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-dasharray="${sw*3} ${sw*2.2}" stroke-linecap="round" opacity=".95"/>`;
+}
 function splashBlob(x,y,r,col,R){let pts=[];const n=14;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,rr=r*(.78+R()*.32);pts.push([x+rr*Math.cos(a),y+rr*Math.sin(a)])}
   let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n];const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;d+=`Q${p[0].toFixed(1)} ${p[1].toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`}
   let s=`<path d="${d}Z" fill="${col}" opacity=".55"/>`;for(let i=0;i<6;i++){const a=R()*Math.PI*2,rr=r*(1.1+R()*.35);s+=`<circle cx="${(x+rr*Math.cos(a)).toFixed(1)}" cy="${(y+rr*Math.sin(a)).toFixed(1)}" r="${(r*(.05+R()*.08)).toFixed(1)}" fill="${col}" opacity=".6"/>`}return s}
@@ -769,16 +858,29 @@ function motifsInZone(T,zone,ids,R,maxSize,offset=0){
 }
 function sparklesAround(T,box,count,R,size){let s='';for(let i=0;i<count;i++){const a=R()*Math.PI*2;const x=(box.x1+box.x2)/2+Math.cos(a)*((box.x2-box.x1)/2+size*.6);const y=(box.y1+box.y2)/2+Math.sin(a)*((box.y2-box.y1)/2+size*.5);s+=motifSVG('sparkle',x,y,size*(.6+R()*.5),[T.palette.colors[i%T.palette.colors.length],'#fff'])}return s}
 function ribbonBanner(T,cx,cy,w,h){
-  const P=T.palette,g=uid('rb'),t=h*.55;
-  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lighten(P.main,.25)}"/><stop offset=".5" stop-color="${P.main}"/><stop offset="1" stop-color="${darken(P.main,.12)}"/></linearGradient></defs>
-<path d="M${cx-w/2-t*1.6} ${cy-h*.3}h${t*2}v${h*.85}h${-t*2}l${t*.7} ${-h*.42}z" fill="${darken(P.main,.2)}"/><path d="M${cx+w/2+t*1.6} ${cy-h*.3}h${-t*2}v${h*.85}h${t*2}l${-t*.7} ${-h*.42}z" fill="${darken(P.main,.2)}"/>
+  const P=T.palette,g=uid('rb'),t=h*.55,bc=bandCol(P),kind=SK(T).banner;
+  const grad=`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lighten(bc,.25)}"/><stop offset=".5" stop-color="${bc}"/><stop offset="1" stop-color="${darken(bc,.12)}"/></linearGradient></defs>`;
+  if(kind==='pennant'){const x0=cx-w/2-h*.5,x1=cx+w/2+h*.5,yt=cy-h/2,yb=cy+h/2,nt=h*.42;
+    return grad+`<polygon points="${x0},${yt} ${x1},${yt} ${x1-nt},${cy} ${x1},${yb} ${x0},${yb} ${x0+nt},${cy}" fill="${P.ink}" transform="translate(${(h*.06).toFixed(1)} ${(h*.09).toFixed(1)})" opacity=".35"/><polygon points="${x0},${yt} ${x1},${yt} ${x1-nt},${cy} ${x1},${yb} ${x0},${yb} ${x0+nt},${cy}" fill="url(#${g})" stroke="${P.ink}" stroke-width="${(h*.06).toFixed(2)}" stroke-linejoin="round"/><rect x="${x0+nt+h*.2}" y="${yt+h*.1}" width="${x1-x0-nt*2-h*.4}" height="${h*.05}" fill="#fff" opacity=".6"/><rect x="${x0+nt+h*.2}" y="${yb-h*.15}" width="${x1-x0-nt*2-h*.4}" height="${h*.05}" fill="#fff" opacity=".6"/>`}
+  if(kind==='tab'){const x0=cx-w/2-h*.3;
+    return grad+`<rect x="${x0+h*.05}" y="${cy-h/2+h*.07}" width="${w+h*.6}" height="${h}" rx="${h*.08}" fill="${P.ink}" opacity=".3"/><rect x="${x0}" y="${cy-h/2}" width="${w+h*.6}" height="${h}" rx="${h*.08}" fill="url(#${g})" stroke="${P.ink}" stroke-width="${(h*.05).toFixed(2)}"/><rect x="${x0+h*.1}" y="${cy-h/2+h*.1}" width="${w+h*.4}" height="${h*.8}" rx="${h*.04}" fill="none" stroke="#fff" stroke-width="${(h*.03).toFixed(2)}" opacity=".85"/>`}
+  return`${grad}
+<path d="M${cx-w/2-t*1.6} ${cy-h*.3}h${t*2}v${h*.85}h${-t*2}l${t*.7} ${-h*.42}z" fill="${darken(bc,.2)}"/><path d="M${cx+w/2+t*1.6} ${cy-h*.3}h${-t*2}v${h*.85}h${t*2}l${-t*.7} ${-h*.42}z" fill="${darken(bc,.2)}"/>
 <rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" rx="${h*.18}" fill="url(#${g})"/>
 <rect x="${cx-w/2+h*.12}" y="${cy-h/2+h*.12}" width="${w-h*.24}" height="${h*.76}" rx="${h*.12}" fill="none" stroke="#fff" stroke-width="${h*.035}" stroke-dasharray="${h*.1} ${h*.07}" stroke-linecap="round"/>`;
 }
-function flowerBadge(T,cx,cy,r){const P=T.palette;let s='';const n=10;
+function flowerBadge(T,cx,cy,r){
+  const P=T.palette,kind=SK(T).badge;let s='';
+  if(kind==='star'){
+    s+=`<polygon points="${starPts(cx+r*.05,cy+r*.07,r*1.22,r*.98,14)}" fill="${P.ink}" opacity=".3"/><polygon points="${starPts(cx,cy,r*1.22,r*.98,14)}" fill="${bandCol(P)}" stroke="${P.ink}" stroke-width="${(r*.05).toFixed(2)}" stroke-linejoin="round"/>`;
+    s+=`<circle cx="${cx}" cy="${cy}" r="${r*.82}" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="${r*.74}" fill="none" stroke="${P.accent}" stroke-width="${r*.04}"/>`;return s}
+  if(kind==='ring'){
+    s+=`<circle cx="${cx+r*.05}" cy="${cy+r*.07}" r="${r*1.02}" fill="${P.ink}" opacity=".3"/><circle cx="${cx}" cy="${cy}" r="${r*1.02}" fill="${bandCol(P)}" stroke="${P.ink}" stroke-width="${(r*.05).toFixed(2)}"/>`;
+    s+=`<circle cx="${cx}" cy="${cy}" r="${r*.9}" fill="none" stroke="#fff" stroke-width="${r*.04}" opacity=".85"/><circle cx="${cx}" cy="${cy}" r="${r*.8}" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="${r*.72}" fill="none" stroke="${P.accent}" stroke-width="${r*.035}"/>`;return s}
+  const n=10;
   for(let i=0;i<n;i++){const a=i/n*Math.PI*2;s+=`<circle cx="${(cx+r*.78*Math.cos(a)).toFixed(1)}" cy="${(cy+r*.78*Math.sin(a)).toFixed(1)}" r="${(r*.3).toFixed(1)}" fill="${P.colors[i%P.colors.length]}"/>`}
   s+=`<circle cx="${cx}" cy="${cy}" r="${r*.8}" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="${r*.72}" fill="none" stroke="${P.main}" stroke-width="${r*.03}" stroke-dasharray="${r*.08} ${r*.06}" stroke-linecap="round"/>`;
-  s+=motifSVG('ribbon',cx,cy+r*1.02,r*.85,[P.main,P.accent,P.sub]);return s}
+  return s}
 
 /* ================= 各媒体 ================= */
 const FK=T=>T.font==='gothic'?'gothic':'rounded';
@@ -789,7 +891,7 @@ function topBoard(T,n){
   const te=topEdgeDepth(T,26);const bh=T.bottom==='none'?0:26;
   // 商品名：文字の高さ約9cmを目安。いちばん大きく
   const zoneM=n===1?125:200;
-  const nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92,-.02);
+  let nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92-ex,-.02);
   const ny=Math.max(te+48,150)+12;
   const nm=placeH(nameRun,W/2,ny,seams);
   // キャッチ（上・小さめ）
@@ -798,7 +900,7 @@ function topBoard(T,n){
   const ct=placeH(catchRun,W/2,cy,seams);
   // サブコピー（リボン）
   const subRun=fitH(T.copy.sub,fk,26,Math.min(W-zoneM*2-60,520*n),22,0);
-  const sy=Math.min(H-bh-22,nm.box.y2+26);
+  const sy=Math.min(H-bh-20,nm.box.y2+26+ex);
   const sb=placeH(subRun,W/2,sy,seams);
   // モチーフ（商品名の左右の区域）
   const ids=T.motifs.length?T.motifs:['star'];const half=Math.ceil(ids.length/2);
@@ -849,9 +951,9 @@ function bottomDeco(T,n){
   s+=`<rect width="${W}" height="${H}" fill="${P.main}" opacity=".12"/>`;
   const ed=T.top==='drip'?24:16;
   const zoneM=n===1?190:260;
-  const nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62,-.02);
+  let nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62-ex,-.02);
   const bRun=fitH(T.copy.bottom,fk,22,W-zoneM*2,18);
-  const gap=10,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+4;
+  const gap=10+ex,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+4;
   const nm=placeH(nameRun,W/2,yTop+nameRun.ink.h/2,seams);
   const bt=placeH(bRun,W/2,nm.box.y2+gap+bRun.ink.h/2,seams);
   const ids=T.motifs.length?T.motifs:['star'];
@@ -917,7 +1019,7 @@ function svgDoc(m,vb,px){const v=vb||[0,0,m.W,m.H];const wh=px?` width="${px[0]}
 /* ================= 画面 ================= */
 let THEME=null,MEDIA=null;
 function buildAll(){
-  LOG=[];MISSING.clear();UID=0;const n=THEME.gondolas||1;
+  LOG=[];MISSING.clear();UID=0;CUR=THEME;const n=THEME.gondolas||1;
   const top=topBoard(THEME,n),side=sidePair(THEME),bottom=bottomDeco(THEME,n),rail=railSheet(THEME);
   MEDIA={n,top,side,sideSheet:sideSheet(THEME,side),bottom,rail};MEDIA.gondola=gondola(THEME,n,MEDIA);
   if(MISSING.size)LOG.push('⚠ フォントにない文字を省きました: '+[...MISSING].join(' '));
@@ -953,6 +1055,7 @@ function fillThemeForm(){
   const PL={bg1:'背景（上）',bg2:'背景（下）',main:'メイン',sub:'サブ',accent:'アクセント',ink:'縁取り'};
   $('#th-pal').innerHTML=Object.entries(PL).map(([k,l])=>`<label>${l}<input type="color" data-k="${k}" value="${T.palette[k]}"></label>`).join('')+T.palette.colors.map((c,i)=>`<label>多色${i+1}<input type="color" data-c="${i}" value="${c}"></label>`).join('');
   const opt=(o,v)=>Object.entries(o).map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('');
+  $('#th-style').innerHTML=Object.entries(STYLES).map(([k,v])=>`<option value="${k}"${k===(T.style||'yume')?' selected':''}>${v.ja}</option>`).join('');
   $('#th-pattern').innerHTML=opt(PATTERNS,T.pattern);$('#th-top').innerHTML=opt(TOPS,T.top);$('#th-bottom').innerHTML=opt(BOTTOMS,T.bottom);
   $('#th-stitch').checked=!!T.stitch;$('#th-splash').checked=!!T.splash;$('#th-sideshape').value=T.sideShape==='round'?'round':'square';
   renderMotifChips();
@@ -966,7 +1069,7 @@ let rt=null;function rerender(){clearTimeout(rt);rt=setTimeout(()=>{showJSON();r
 function readForm(){
   const T=THEME;T.name=$('#th-name').value;T.mood=$('#th-mood').value;T.font=$('#th-font').value;
   document.querySelectorAll('#th-pal input').forEach(i=>{if(i.dataset.k)T.palette[i.dataset.k]=i.value;else T.palette.colors[+i.dataset.c]=i.value});
-  T.pattern=$('#th-pattern').value;T.top=$('#th-top').value;T.bottom=$('#th-bottom').value;T.stitch=$('#th-stitch').checked;T.splash=$('#th-splash').checked;T.sideShape=$('#th-sideshape').value;
+  T.pattern=$('#th-pattern').value;T.top=$('#th-top').value;T.bottom=$('#th-bottom').value;T.style=$('#th-style').value;T.stitch=$('#th-stitch').checked;T.splash=$('#th-splash').checked;T.sideShape=$('#th-sideshape').value;
   const c=T.copy;c.title=$('#cp-title').value;c.catch=$('#cp-catch').value;c.sub=$('#cp-sub').value;c.side=[$('#cp-sideL').value,$('#cp-sideR').value];c.bottom=$('#cp-bottom').value;c.rails=[$('#cp-r1').value,$('#cp-r2').value,$('#cp-r3').value];
 }
 function setStatus(sel,msg,cls=''){const e=$(sel);e.textContent=msg;e.className='status '+cls}
@@ -1072,7 +1175,10 @@ function init(){
   $('#btn-reroll').onclick=()=>{if(!THEME)return;const inp=getInputs();const hits=localTheme(inp).keywordHits.map(n=>DICT.find(d=>d.name===n)).filter(Boolean);THEME.copySeed=(THEME.copySeed||0)+1;const t=THEME.copy.title;THEME.copy=autoCopy(t,hits,THEME.copySeed);if(THEME.useOfficialCopy&&THEME.officialCopy&&THEME.copySeed%2===0)THEME.copy.catch=Array.from(THEME.officialCopy).slice(0,16).join('');
     const c=THEME.copy;$('#cp-title').value=c.title;$('#cp-catch').value=c.catch;$('#cp-sub').value=c.sub;$('#cp-sideL').value=c.side[0];$('#cp-sideR').value=c.side[1];$('#cp-bottom').value=c.bottom;$('#cp-r1').value=c.rails[0];$('#cp-r2').value=c.rails[1];$('#cp-r3').value=c.rails[2];rerender()};
   $('#sec-theme').addEventListener('input',e=>{if(e.target.id==='json-in')return;readForm();rerender()});
-  $('#sec-theme').addEventListener('change',e=>{if(e.target.id==='json-in')return;readForm();rerender()});
+  $('#sec-theme').addEventListener('change',e=>{if(e.target.id==='json-in')return;
+    if(e.target.id==='th-style'){   // スタイルを変えたら、そのスタイルの標準（書体・縁・柄・枠）に切り替える
+      const st=STYLES[e.target.value];Object.assign(THEME,{style:e.target.value,font:st.font,top:st.top,bottom:st.bottom,pattern:st.pattern,stitch:true});harmonize(THEME);fillThemeForm();rerender();return}
+    readForm();rerender()});
   $('#th-motifs').onclick=e=>{const id=e.target.closest('[data-m]')?.dataset.m;if(!id)return;const m=THEME.motifs;const i=m.indexOf(id);if(i>=0)m.splice(i,1);else{if(m.length>=8){setStatus('#gen-status','モチーフは8個までです','err');return}m.push(id)}renderMotifChips();rerender()};
   $('#btn-json-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#th-json').textContent);$('#btn-json-copy').textContent='コピーしました'}catch(e){$('#btn-json-copy').textContent='コピーできません（長押しで選択）'}};
   $('#btn-json-load').onclick=()=>{try{const raw=JSON.parse($('#json-in').value);const inp=getInputs();const t=sanitize(raw,{...inp,name:raw.copy?.title||inp.name},'json');t.gondolas=raw.gondolas||inp.gondolas;if(Array.isArray(raw.sources))t.sources=raw.sources;THEME=t;fillThemeForm();renderPreview();setStatus('#gen-status','JSONを読み込みました','ok')}catch(e){setStatus('#gen-status','JSONを読めませんでした：'+e.message,'err')}};
