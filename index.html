@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
 <style>
+[hidden]{display:none!important}
 :root{--pink:#ff5fa2;--ink:#3b2a3f;--mut:#8a7a8f;--line:#eadfee;--bg:#fbf7fc;--card:#fff;--ok:#1f9d6b;--warn:#c2410c}
 *{box-sizing:border-box}
 body{margin:0;font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.6}
@@ -170,6 +171,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
   <div class="row">
     <div><label class="f">上の縁の飾り</label><select id="th-top"></select></div>
     <div><label class="f">下の縁の飾り</label><select id="th-bottom"></select></div>
+    <div><label class="f">サイドパネルの形</label><select id="th-sideshape"><option value="square">四角</option><option value="round">上下が丸いカーブ</option></select></div>
   </div>
   <div class="row">
     <div><label class="f"><input type="checkbox" id="th-stitch"> 白いステッチ（点線）の枠</label></div>
@@ -825,6 +827,10 @@ function sidePanel(T,side,nameRun,badgeRuns){
   for(let i=0;i<5;i++){const y=top+R()*(nameRun.h);const x=R()<.5?12+R()*8:W-12-R()*8;s+=motifSVG('sparkle',x,y,10+R()*6,[P.colors[i%P.colors.length],'#fff'])}
   s+=topEdge(T,W,20,R)+bottomEdge(T,W,H,22)+stitch(T,W,H,6,1);
   s+=deco(bt,textStyle(P,'catch',badgeRuns[side].size))+deco(nm,textStyle(P,'name',nameRun.size));
+  if(T.sideShape==='round'){   // 上下を丸いカーブにする（ドーム形）。切り抜き線を点線で入れる
+    const ry=58,rx=W/2,d=`M0 ${ry}A${rx} ${ry} 0 0 1 ${W} ${ry}L${W} ${H-ry}A${rx} ${ry} 0 0 1 0 ${H-ry}Z`,cid=uid('sc');
+    s=`<defs><clipPath id="${cid}"><path d="${d}"/></clipPath></defs><g clip-path="url(#${cid})">${s}</g><path d="${d}" fill="none" stroke="#b9b3bc" stroke-width=".4" stroke-dasharray="2 1.5"/>`;
+  }
   return{W,H,inner:s};
 }
 function sidePair(T){
@@ -948,7 +954,7 @@ function fillThemeForm(){
   $('#th-pal').innerHTML=Object.entries(PL).map(([k,l])=>`<label>${l}<input type="color" data-k="${k}" value="${T.palette[k]}"></label>`).join('')+T.palette.colors.map((c,i)=>`<label>多色${i+1}<input type="color" data-c="${i}" value="${c}"></label>`).join('');
   const opt=(o,v)=>Object.entries(o).map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('');
   $('#th-pattern').innerHTML=opt(PATTERNS,T.pattern);$('#th-top').innerHTML=opt(TOPS,T.top);$('#th-bottom').innerHTML=opt(BOTTOMS,T.bottom);
-  $('#th-stitch').checked=!!T.stitch;$('#th-splash').checked=!!T.splash;
+  $('#th-stitch').checked=!!T.stitch;$('#th-splash').checked=!!T.splash;$('#th-sideshape').value=T.sideShape==='round'?'round':'square';
   renderMotifChips();
   const c=T.copy;$('#cp-title').value=c.title;$('#cp-catch').value=c.catch;$('#cp-sub').value=c.sub;$('#cp-sideL').value=c.side[0];$('#cp-sideR').value=c.side[1];$('#cp-bottom').value=c.bottom;$('#cp-r1').value=c.rails[0];$('#cp-r2').value=c.rails[1];$('#cp-r3').value=c.rails[2];
   renderCopyAuto();renderCheck();showJSON();
@@ -960,7 +966,7 @@ let rt=null;function rerender(){clearTimeout(rt);rt=setTimeout(()=>{showJSON();r
 function readForm(){
   const T=THEME;T.name=$('#th-name').value;T.mood=$('#th-mood').value;T.font=$('#th-font').value;
   document.querySelectorAll('#th-pal input').forEach(i=>{if(i.dataset.k)T.palette[i.dataset.k]=i.value;else T.palette.colors[+i.dataset.c]=i.value});
-  T.pattern=$('#th-pattern').value;T.top=$('#th-top').value;T.bottom=$('#th-bottom').value;T.stitch=$('#th-stitch').checked;T.splash=$('#th-splash').checked;
+  T.pattern=$('#th-pattern').value;T.top=$('#th-top').value;T.bottom=$('#th-bottom').value;T.stitch=$('#th-stitch').checked;T.splash=$('#th-splash').checked;T.sideShape=$('#th-sideshape').value;
   const c=T.copy;c.title=$('#cp-title').value;c.catch=$('#cp-catch').value;c.sub=$('#cp-sub').value;c.side=[$('#cp-sideL').value,$('#cp-sideR').value];c.bottom=$('#cp-bottom').value;c.rails=[$('#cp-r1').value,$('#cp-r2').value,$('#cp-r3').value];
 }
 function setStatus(sel,msg,cls=''){const e=$(sel);e.textContent=msg;e.className='status '+cls}
