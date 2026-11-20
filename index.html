@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>インスパイア型 売場POPメーカー（試作）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff5fa2;--ink:#3b2a3f;--mut:#8a7a8f;--line:#eadfee;--bg:#fbf7fc;--card:#fff;--ok:#1f9d6b;--warn:#c2410c}
+*{box-sizing:border-box}
+body{margin:0;font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.6}
+header{padding:18px 16px 10px;max-width:1100px;margin:auto}
+header h1{margin:0;font-size:21px;font-weight:800;letter-spacing:.02em}
+header p{margin:4px 0 0;color:var(--mut);font-size:13px}
+main{max-width:1100px;margin:auto;padding:0 12px 80px;display:grid;gap:14px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+h2{font-size:16px;margin:0 0 10px;font-weight:800;display:flex;align-items:center;gap:8px}
+h2 .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--pink);color:#fff;font-size:13px}
+label.f{display:block;margin:10px 0 4px;font-weight:800;font-size:13px}
+.hint{color:var(--mut);font-size:12px;font-weight:500}
+input[type=text],input[type=url],input[type=password],textarea,select{width:100%;padding:9px 10px;border:1px solid #dccfe2;border-radius:9px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.row{grid-template-columns:1fr}}
+.seg{display:flex;border:1px solid #dccfe2;border-radius:10px;overflow:hidden}
+.seg label{flex:1;text-align:center;padding:8px 4px;cursor:pointer;font-weight:800;font-size:13px;border-left:1px solid #eee}
+.seg label:first-child{border-left:0}
+.seg input{display:none}
+.seg input:checked+span{color:#fff}
+.seg label:has(input:checked){background:var(--pink);color:#fff}
+.btn{appearance:none;border:0;border-radius:11px;background:var(--pink);color:#fff;font:inherit;font-weight:800;padding:11px 18px;font-size:15px;cursor:pointer}
+.btn.sub{background:#f1e8f4;color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{border:1px solid #e2d5e7;background:#fff;border-radius:999px;padding:4px 10px;font-size:12.5px;cursor:pointer;font-weight:800;color:var(--ink);font-family:inherit}
+.chip.on{background:var(--pink);border-color:var(--pink);color:#fff}
+.chip svg{width:18px;height:18px;vertical-align:-4px;margin-right:3px}
+.sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.sw span{width:30px;height:30px;border-radius:8px;border:1px solid #0001;display:inline-block}
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.pal label{font-size:11.5px;font-weight:800;color:var(--mut);display:flex;flex-direction:column;gap:3px}
+.pal input[type=color]{width:100%;height:34px;border:1px solid #ddd;border-radius:8px;padding:0;background:none}
+.eng{border:1px dashed #dccfe2;border-radius:10px;padding:10px;margin-top:8px;font-size:13px}
+.status{font-size:13px;margin-top:8px;white-space:pre-wrap}
+.status.err{color:var(--warn)} .status.ok{color:var(--ok)}
+.check{background:#fff8ec;border:1px solid #f3dcb5;border-radius:12px;padding:10px 12px;font-size:13px}
+.check h3{margin:0 0 6px;font-size:14px}
+.check ul{margin:4px 0 8px;padding-left:18px}
+.check li{word-break:break-all}
+.tag{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:0 6px;margin-right:4px;background:#eee}
+.tag.ok{background:#d9f5e8;color:#0b6b46}.tag.ng{background:#fde2d6;color:#9a3412}.tag.mu{background:#eee;color:#666}
+.prev{display:grid;gap:12px}
+.pv{border:1px solid var(--line);border-radius:10px;padding:8px;background:#faf8fb}
+.pv h4{margin:0 0 6px;font-size:13px}
+.pv svg{width:100%;height:auto;display:block;background:#fff;box-shadow:0 1px 4px #0002}
+.pv.side svg{max-width:260px}
+.pv.gondola svg{max-width:560px;margin:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl td,.tbl th{border-bottom:1px solid #eee;padding:5px 4px;text-align:left}
+details summary{cursor:pointer;font-weight:800;font-size:13px}
+pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f8;border-radius:8px;padding:8px;max-height:260px;overflow:auto}
+.bar{height:8px;background:#f1e8f4;border-radius:9px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--pink);transition:width .2s}
+.copyg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media (max-width:640px){.copyg{grid-template-columns:1fr}}
+.small{font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>インスパイア型 売場POPメーカー <span class="hint">試作版</span></h1>
+  <p>商品名・公式ページ・キーワード・商品画像の色から、公式デザインを真似しない「オリジナルテーマ」を作り、売場POP一式を印刷用JPEGで書き出します。</p>
+</header>
+<main>
+
+<section id="sec-in">
+  <h2><span class="n">1</span>入力</h2>
+  <label class="f">商品名 <span class="hint">（POPでいちばん大きく入る文字）</span></label>
+  <input type="text" id="in-name" placeholder="例：ぐいぐい スライム">
+  <div class="row">
+    <div>
+      <label class="f">公式ページのURL <span class="hint">（主に参考にする）</span></label>
+      <input type="url" id="in-official" placeholder="https://...">
+    </div>
+    <div>
+      <label class="f">参考ページのURL <span class="hint">（雰囲気の参考・1行に1つ）</span></label>
+      <textarea id="in-refs" placeholder="https://...&#10;https://..."></textarea>
+    </div>
+  </div>
+  <label class="f">イメージキーワード <span class="hint">（読点・スペース区切り）</span></label>
+  <input type="text" id="in-kw" placeholder="例：ゆめかわ、キラキラ、コスメ">
+  <div class="chips" id="kw-chips"></div>
+  <label class="f">商品画像 <span class="hint">（色の分析だけに使います。POPには入れません）</span></label>
+  <input type="file" id="in-img" accept="image/*">
+  <div class="sw" id="img-sw"></div>
+  <div class="row">
+    <div>
+      <label class="f">参考にする強さ</label>
+      <div class="seg" id="in-strength">
+        <label><input type="radio" name="st" value="low">控えめ</label>
+        <label><input type="radio" name="st" value="mid" checked>標準</label>
+        <label><input type="radio" name="st" value="high">強め</label>
+      </div>
+    </div>
+    <div>
+      <label class="f">ゴンドラ台数</label>
+      <div class="seg" id="in-gon">
+        <label><input type="radio" name="gon" value="1" checked>1台（90cm）</label>
+        <label><input type="radio" name="gon" value="2">2台（180cm）</label>
+      </div>
+    </div>
+  </div>
+  <label class="f"><input type="checkbox" id="in-offcopy"> 公式キャッチコピーを使ってよい <span class="hint">（オフのときはオリジナル文言だけにします）</span></label>
+
+  <label class="f">テーマの作り方</label>
+  <div class="seg" id="in-engine">
+    <label><input type="radio" name="eng" value="local" checked>ローカル</label>
+    <label><input type="radio" name="eng" value="gemini">Gemini（無料枠）</label>
+    <label><input type="radio" name="eng" value="openrouter">OpenRouter（無料）</label>
+  </div>
+  <div class="eng" id="eng-note"></div>
+  <div class="eng" id="gem-box" hidden>
+    <label class="f" style="margin-top:0">Gemini APIキー</label>
+    <input type="password" id="gem-key" placeholder="AIza..." autocomplete="off">
+    <label class="small"><input type="checkbox" id="gem-save"> この端末に保存する</label>
+    <label class="f">モデル名</label>
+    <input type="text" id="gem-model" value="gemini-flash-latest">
+    <div class="hint">無料枠で使えます（キーは <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> で無料発行）。回数に上限があり、送った内容がGoogleの製品改善に使われることがあります。お店の内部情報は入れないでください。</div>
+  </div>
+  <div class="eng" id="or-box" hidden>
+    <label class="f" style="margin-top:0">OpenRouter APIキー</label>
+    <input type="password" id="or-key" placeholder="sk-or-..." autocomplete="off">
+    <label class="small"><input type="checkbox" id="or-save"> この端末に保存する</label>
+    <label class="f">モデル名</label>
+    <input type="text" id="or-model" value="openrouter/free">
+    <div class="hint">「openrouter/free」は無料モデルの中から自動で選んで使います（料金0円、キーは <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai</a> で無料発行）。回数に上限があり、送った内容が改善に使われることがあります。ページの中身は読めないので、Geminiが回数切れのときの代わりに使ってください。</div>
+  </div>
+  <div class="btns">
+    <button class="btn" id="btn-gen">テーマを作る</button>
+    <span class="status" id="gen-status"></span>
+  </div>
+</section>
+
+<section id="sec-theme" hidden>
+  <h2><span class="n">2</span>テーマ設計図 <span class="hint" id="th-engine"></span></h2>
+  <div class="row">
+    <div><label class="f">テーマ名</label><input type="text" id="th-name"></div>
+    <div><label class="f">雰囲気</label><input type="text" id="th-mood"></div>
+  </div>
+  <label class="f">配色</label>
+  <div class="pal" id="th-pal"></div>
+  <div class="row">
+    <div><label class="f">書体</label>
+      <select id="th-font"><option value="rounded">丸ゴシック（M PLUS Rounded 1c）</option><option value="gothic">極太ゴシック（Noto Sans JP Black）</option></select></div>
+    <div><label class="f">背景柄</label><select id="th-pattern"></select></div>
+  </div>
+  <div class="row">
+    <div><label class="f">上の縁の飾り</label><select id="th-top"></select></div>
+    <div><label class="f">下の縁の飾り</label><select id="th-bottom"></select></div>
+  </div>
+  <div class="row">
+    <div><label class="f"><input type="checkbox" id="th-stitch"> 白いステッチ（点線）の枠</label></div>
+    <div><label class="f"><input type="checkbox" id="th-splash"> イラストの後ろに絵の具のスプラッシュ</label></div>
+  </div>
+  <label class="f">モチーフ <span class="hint">（アプリ内蔵の汎用モチーフだけ。タップで選ぶ／外す・最大8個）</span></label>
+  <div class="chips" id="th-motifs"></div>
+  <label class="f">文言 <span class="hint">（商品名とキーワードから自動で決めます）</span></label>
+  <div id="cp-auto" class="eng" style="margin-top:0"></div>
+  <div class="btns" style="margin-top:6px"><button type="button" class="btn sub" id="btn-reroll">別の案にする</button></div>
+  <details style="margin-top:8px"><summary>文言を手直しする（任意）</summary>
+  <div class="copyg">
+    <div><span class="hint">商品名（表示）</span><input type="text" id="cp-title"></div>
+    <div><span class="hint">キャッチコピー（トップ上）</span><input type="text" id="cp-catch"></div>
+    <div><span class="hint">サブコピー（トップ下のリボン）</span><input type="text" id="cp-sub"></div>
+    <div><span class="hint">サイド左のバッジ</span><input type="text" id="cp-sideL"></div>
+    <div><span class="hint">サイド右のバッジ</span><input type="text" id="cp-sideR"></div>
+    <div><span class="hint">下段装飾のひとこと</span><input type="text" id="cp-bottom"></div>
+    <div><span class="hint">カードレール1</span><input type="text" id="cp-r1"></div>
+    <div><span class="hint">カードレール2</span><input type="text" id="cp-r2"></div>
+    <div><span class="hint">カードレール3</span><input type="text" id="cp-r3"></div>
+  </div></details>
+  <div class="check" id="chk" style="margin-top:12px"></div>
+  <details style="margin-top:10px"><summary>設計図データ（JSON）</summary>
+    <pre id="th-json"></pre>
+    <div class="btns"><button class="btn sub" id="btn-json-copy">コピー</button>
+    <button class="btn sub" id="btn-json-load">貼り付けたJSONを読み込む</button></div>
+    <textarea id="json-in" placeholder="ここに設計図JSONを貼り付け" style="margin-top:8px"></textarea>
+  </details>
+</section>
+
+<section id="sec-prev" hidden>
+  <h2><span class="n">3</span>プレビュー</h2>
+  <div class="prev" id="prev"></div>
+  <div class="status" id="fit-log"></div>
+</section>
+
+<section id="sec-out" hidden>
+  <h2><span class="n">4</span>書き出し</h2>
+  <table class="tbl" id="out-tbl"></table>
+  <label class="f"><input type="checkbox" id="out-ok"> 参照したページと選ばれたモチーフを確認しました（キャラクター・公式ロゴ・公式画像は入っていません）</label>
+  <div class="btns">
+    <button class="btn" id="btn-export" disabled>JPEGをZIPで書き出す</button>
+    <span class="status" id="out-status"></span>
+  </div>
+  <div class="bar"><i id="out-bar"></i></div>
+  <p class="hint">印刷は実寸100%・フチなしで。カードレールは長尺紙に14本並べてあるので、灰色の線で切って使います。</p>
+</section>
+</main>
+
+<script src="lib/opentype.min.js"></script>
+<script src="lib/jszip.min.js"></script>
+<script>
+"use strict";
+/* ================= 基本ユーティリティ ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let UID=0;const uid=p=>`${p}${(++UID).toString(36)}`;
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(const c of String(s)){h^=c.codePointAt(0);h=Math.imul(h,16777619)}return h>>>0}
+const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const store={get(k,d){try{const v=localStorage.getItem('popmk.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('popmk.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('popmk.'+k)}catch(e){}}};
+
+/* ---- 色 ---- */
+const HEX=/^#[0-9a-f]{6}$/i;
+function h2r(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function r2h(r,g,b){return'#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('')}
+function r2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0;const l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h/=6}return[h,s,l]}
+function hsl2h(h,s,l){let r,g,b;if(s===0){r=g=b=l}else{const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p};const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;r=f(p,q,h+1/3);g=f(p,q,h);b=f(p,q,h-1/3)}return r2h(r*255,g*255,b*255)}
+const hsl=h=>r2hsl(...h2r(h));
+function setL(h,l){const[a,s]=hsl(h);return hsl2h(a,s,l)}
+function lighten(h,t){const[r,g,b]=h2r(h);return r2h(r+(255-r)*t,g+(255-g)*t,b+(255-b)*t)}
+function darken(h,t){const[r,g,b]=h2r(h);return r2h(r*(1-t),g*(1-t),b*(1-t))}
+function pastel(h){const[a,s,l]=hsl(h);return hsl2h(a,Math.max(.55,Math.min(.9,s)),.78)}
+function vivid(h){const[a,s,l]=hsl(h);return hsl2h(a,Math.max(.6,s),Math.min(.62,Math.max(.48,l)))}
+function inkOf(h){const[a,s]=hsl(h);return hsl2h(a,Math.min(.6,Math.max(.35,s)),.24)}
+function okHex(h,d){return HEX.test(h||'')?h.toLowerCase():d}
+
+/* ================= フォント（文字はすべてパスにして描く） ================= */
+const FONTS={};
+async function loadFonts(){
+  const list=[['rounded','fonts/rounded-900.woff'],['gothic','fonts/gothic-900.woff']];
+  for(const[k,u]of list){const r=await fetch(u);if(!r.ok)throw new Error(u+' が読めません');FONTS[k]=opentype.parse(await r.arrayBuffer())}
+}
+const MISSING=new Set();
+// 横書き：文字ごとの位置とインクの範囲
+function hrun(str,fk,size,track=0){
+  const f=FONTS[fk],u=size/f.unitsPerEm;let x=0;const gs=[];
+  for(const ch of Array.from(String(str))){
+    let g=f.charToGlyph(ch);
+    if(g.index===0&&ch.trim()){MISSING.add(ch);continue}
+    const adv=(g.advanceWidth||f.unitsPerEm*.5)*u;
+    let ink=null;
+    if(g.path&&g.path.commands&&g.path.commands.length){const b=g.getBoundingBox();ink={x1:b.x1*u,x2:b.x2*u,y1:-b.y2*u,y2:-b.y1*u}}
+    gs.push({ch,g,x,adv,ink});x+=adv+track*size;
+  }
+  let X1=1e9,X2=-1e9,Y1=1e9,Y2=-1e9;
+  for(const o of gs)if(o.ink){X1=Math.min(X1,o.x+o.ink.x1);X2=Math.max(X2,o.x+o.ink.x2);Y1=Math.min(Y1,o.ink.y1);Y2=Math.max(Y2,o.ink.y2)}
+  if(X1>X2){X1=0;X2=0;Y1=-size*.8;Y2=0}
+  return{gs,size,fk,track,ink:{x1:X1,x2:X2,y1:Y1,y2:Y2,w:X2-X1,h:Y2-Y1}};
+}
+function fitH(str,fk,size,maxW,maxH,track=0){let r=hrun(str,fk,size,track);const s=Math.min(1,maxW/Math.max(r.ink.w,.01),maxH/Math.max(r.ink.h,.01));if(s<1)r=hrun(str,fk,size*s,track);return r}
+// つなぎ目（用紙の切れ目）が文字にかからないよう、横にずらす量
+function seamShift(run,ox,seams,margin=1.6,max=90){
+  if(!seams||!seams.length)return 0;
+  const boxes=run.gs.filter(o=>o.ink).map(o=>[o.x+o.ink.x1,o.x+o.ink.x2]);
+  const ok=dx=>seams.every(S=>boxes.every(([a,b])=>S<ox+dx+a-margin||S>ox+dx+b+margin));
+  for(let k=0;k<=max*4;k++){for(const s of[k*.25,-k*.25])if(ok(s))return s}
+  LOG.push('⚠ つなぎ目を避けられない文字列があります: '+run.gs.map(o=>o.ch).join(''));return 0;
+}
+// 中央(cx,cy)に置いたときのパス部品
+function placeH(run,cx,cy,seams){
+  let ox=cx-(run.ink.x1+run.ink.x2)/2;const oy=cy-(run.ink.y1+run.ink.y2)/2;
+  ox+=seamShift(run,ox,seams);
+  const d=run.gs.filter(o=>o.ink).map(o=>o.g.getPath(ox+o.x,oy,run.size).toPathData(2)).join('');
+  return{parts:[{d}],box:{x1:ox+run.ink.x1,x2:ox+run.ink.x2,y1:oy+run.ink.y1,y2:oy+run.ink.y2}};
+}
+// 縦書き
+const ROT=new Set(Array.from('ー－—〜～…‥（）()「」『』【】-~＝=→←'));
+const SMALL=new Set(Array.from('ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ'));
+const PUNCT=new Set(Array.from('、。，．'));
+function vrun(str,fk,size,track=0){
+  const f=FONTS[fk],u=size/f.unitsPerEm;const cells=[];let y=0;
+  for(const ch of Array.from(String(str))){
+    if(ch===' '||ch==='　'){y+=size*.5;continue}
+    const g=f.charToGlyph(ch);if(g.index===0){MISSING.add(ch);continue}
+    const adv=(g.advanceWidth||f.unitsPerEm)*u;cells.push({ch,g,adv,y});y+=size*(1+track);
+  }
+  return{cells,size,fk,h:Math.max(0,y-size*track),w:size};
+}
+function fitV(str,fk,size,maxW,maxH,track=0){let r=vrun(str,fk,size,track);let wmax=0;for(const c of r.cells)wmax=Math.max(wmax,Math.min(c.adv,size));const s=Math.min(1,maxH/Math.max(r.h,.01),maxW/Math.max(wmax||size,.01));if(s<1)r=vrun(str,fk,size*s,track);return r}
+function placeV(run,cx,top){
+  const s=run.size,parts=[];
+  for(const c of run.cells){
+    const cy=top+c.y+s/2;
+    if(ROT.has(c.ch)){const d=c.g.getPath(cx-c.adv/2,cy+s*.36,s).toPathData(2);parts.push({d,tf:`rotate(90 ${cx.toFixed(2)} ${cy.toFixed(2)})`})}
+    else{let dx=0,dy=0;if(SMALL.has(c.ch)){dx=s*.1;dy=-s*.1}if(PUNCT.has(c.ch)){dx=s*.55;dy=-s*.6}
+      parts.push({d:c.g.getPath(cx-c.adv/2+dx,cy+s*.36+dy,s).toPathData(2)})}
+  }
+  return{parts,box:{x1:cx-s/2,x2:cx+s/2,y1:top,y2:top+run.h}};
+}
+// 文字の飾り：外側の濃いフチ → 白フチ → 内側の濃いフチ → グラデーション塗り（＋軽い影）
+function deco(pl,st){
+  const gid=uid('tg'),b=pl.box,k=st.k;
+  const lay=(a)=>pl.parts.map(p=>`<path d="${p.d}"${p.tf?` transform="${p.tf}"`:''} ${a}/>`).join('');
+  const J='stroke-linejoin="round" stroke-linecap="round"';
+  return `<defs><linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="${b.y1.toFixed(1)}" x2="0" y2="${b.y2.toFixed(1)}"><stop offset="0" stop-color="${st.fill[0]}"/><stop offset="1" stop-color="${st.fill[1]}"/></linearGradient></defs>
+<g>${st.shadow!==false?`<g transform="translate(${(k*.35).toFixed(2)},${(k*.45).toFixed(2)})" opacity=".28">${lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*1.9).toFixed(2)}" ${J}`)}</g>`:''}
+${st.outer!==false?lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*1.9).toFixed(2)}" ${J}`):''}
+${lay(`fill="${st.white||'#fff'}" stroke="${st.white||'#fff'}" stroke-width="${(k*1.35).toFixed(2)}" ${J}`)}
+${lay(`fill="${st.ink}" stroke="${st.ink}" stroke-width="${(k*.5).toFixed(2)}" ${J}`)}
+${lay(`fill="url(#${gid})"`)}</g>`;
+}
+function textStyle(P,role,size){
+  const k=size*0.12;
+  if(role==='name')return{fill:[lighten(P.main,.35),P.main],ink:P.ink,k};
+  if(role==='catch')return{fill:[lighten(P.sub,.3),P.sub],ink:P.ink,k:k*.9};
+  if(role==='white')return{fill:['#ffffff','#fff4fa'],ink:P.ink,white:P.ink,outer:false,k:k*.8,shadow:false};
+  if(role==='label')return{fill:[P.ink,P.ink],ink:'#ffffff',white:'#ffffff',outer:false,k:k*.5,shadow:false};
+  return{fill:[lighten(P.accent,.2),darken(P.accent,.1)],ink:P.ink,k};
+}
+
+/* ================= 汎用モチーフ一覧（キャラクターは含まない） ================= */
+function starPts(cx,cy,ro,ri,n=5,rot=-90){const p=[];for(let i=0;i<n*2;i++){const r=i%2?ri:ro,a=(rot+i*180/n)*Math.PI/180;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1))}return p.join(' ')}
+const SH='<ellipse cx="32" cy="30" rx="8" ry="4.5" transform="rotate(-35 32 30)" fill="#fff" opacity=".65"/>';
+const MOTIFS={
+ heart:{ja:'ハート',f:(c)=>`<path d="M50 90C22 70 6 54 6 34 6 19 17 9 30 9c9 0 16 5 20 12 4-7 11-12 20-12 13 0 24 10 24 25 0 20-16 36-44 56z" fill="${c[0]}"/>${SH}`},
+ star:{ja:'星',f:(c)=>`<polygon points="${starPts(50,54,44,20)}" fill="${c[0]}" stroke="${c[0]}" stroke-width="7" stroke-linejoin="round"/><polygon points="${starPts(50,54,22,10)}" fill="#fff" opacity=".35"/>`},
+ sparkle:{ja:'きらきら',f:(c)=>`<path d="M44 6C48 36 56 42 86 46 56 50 48 56 44 86 40 56 32 50 2 46 32 42 40 36 44 6Z" fill="${c[0]}"/><path d="M80 62c1.5 9 4 11.5 13 13-9 1.5-11.5 4-13 13-1.5-9-4-11.5-13-13 9-1.5 11.5-4 13-13z" fill="${c[1]}"/>`},
+ ribbon:{ja:'リボン',f:(c)=>`<path d="M46 52 30 90l10-4 5 10 8-40zM54 52l16 38-10-4-5 10-8-40z" fill="${darken(c[0],.12)}"/><path d="M50 50C36 28 10 20 6 34s6 30 44 16zM50 50c14-22 40-30 44-16s-6 30-44 16z" fill="${c[0]}"/><path d="M50 50C38 36 20 30 16 36" stroke="#fff" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/><circle cx="50" cy="50" r="10" fill="${darken(c[0],.08)}"/><circle cx="47" cy="47" r="3" fill="#fff" opacity=".6"/>`},
+ crown:{ja:'王冠',f:(c)=>`<path d="M14 76 9 32l22 18 19-30 19 30 22-18-5 44z" fill="${c[0]}" stroke="${darken(c[0],.25)}" stroke-width="2.5" stroke-linejoin="round"/><rect x="13" y="72" width="74" height="14" rx="5" fill="${darken(c[0],.12)}"/><circle cx="9" cy="30" r="6" fill="${c[1]}"/><circle cx="50" cy="18" r="7" fill="${c[1]}"/><circle cx="91" cy="30" r="6" fill="${c[1]}"/><circle cx="30" cy="79" r="4" fill="${c[2]}"/><circle cx="50" cy="79" r="4.5" fill="${c[1]}"/><circle cx="70" cy="79" r="4" fill="${c[2]}"/><path d="M24 64 22 44" stroke="#fff" stroke-width="3" opacity=".5" stroke-linecap="round"/>`},
+ rainbow:{ja:'雲つきの虹',f:(c)=>{const cs=[c[0],c[1],c[2],c[3]||c[0]];return cs.map((col,i)=>`<path d="M${12+i*7} 72A${38-i*7} ${38-i*7} 0 0 1 ${88-i*7} 72" fill="none" stroke="${col}" stroke-width="7.5"/>`).join('')+`<g fill="#fff" stroke="#e8dff0" stroke-width="1.5"><circle cx="14" cy="74" r="10"/><circle cx="26" cy="77" r="8"/><circle cx="6" cy="79" r="6"/><circle cx="86" cy="74" r="10"/><circle cx="74" cy="77" r="8"/><circle cx="94" cy="79" r="6"/></g><rect x="0" y="78" width="34" height="9" rx="4.5" fill="#fff"/><rect x="66" y="78" width="34" height="9" rx="4.5" fill="#fff"/>`}},
+ cloud:{ja:'雲',f:(c)=>`<g fill="#fff" stroke="${c[0]}" stroke-width="3"><path d="M22 74a16 16 0 0 1 2-32 22 22 0 0 1 42-6 18 18 0 0 1 14 38z"/></g><circle cx="36" cy="58" r="3" fill="${c[0]}"/><circle cx="58" cy="58" r="3" fill="${c[0]}"/>`},
+ gem:{ja:'宝石',f:(c)=>`<polygon points="18,38 34,18 66,18 82,38 50,86" fill="${c[0]}"/><polygon points="18,38 82,38 66,18 34,18" fill="${lighten(c[0],.35)}"/><path d="M34 18 42 38 50 86M66 18 58 38 50 86M42 38 50 18 58 38" stroke="#fff" stroke-width="1.8" fill="none" opacity=".7"/><path d="M26 34 34 24" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`},
+ macaron:{ja:'マカロン',f:(c)=>`<rect x="12" y="24" width="76" height="24" rx="12" fill="${c[0]}"/><rect x="15" y="44" width="70" height="6" rx="2" fill="${darken(c[0],.1)}"/><rect x="12" y="48" width="76" height="9" rx="4.5" fill="#fff"/><rect x="15" y="56" width="70" height="6" rx="2" fill="${darken(c[0],.1)}"/><rect x="12" y="58" width="76" height="22" rx="11" fill="${c[0]}"/><ellipse cx="32" cy="32" rx="10" ry="3.5" fill="#fff" opacity=".55"/>`},
+ cupcake:{ja:'カップケーキ',f:(c)=>`<path d="M20 56h60l-8 34H28z" fill="${c[1]}"/><path d="M30 58l3 30M42 58l1 30M54 58l-1 30M66 58l-3 30" stroke="#fff" stroke-width="2" opacity=".6"/><circle cx="30" cy="52" r="13" fill="${c[0]}"/><circle cx="50" cy="44" r="17" fill="${c[0]}"/><circle cx="70" cy="52" r="13" fill="${c[0]}"/><circle cx="50" cy="24" r="8" fill="${c[2]}"/><path d="M50 16q4-8 10-9" stroke="#5a8a3a" stroke-width="2.5" fill="none"/><circle cx="40" cy="42" r="2.2" fill="#fff"/><circle cx="58" cy="48" r="2.2" fill="#fff"/><circle cx="30" cy="50" r="2.2" fill="#fff"/>`},
+ candy:{ja:'キャンディ',f:(c)=>`<path d="M30 50 8 34v32zM70 50l22-16v32z" fill="${c[1]}"/><ellipse cx="50" cy="50" rx="24" ry="18" fill="${c[0]}"/><path d="M34 40q16 20 32 0M34 60q16-20 32 0" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>`},
+ lollipop:{ja:'ぺろぺろキャンディ',f:(c)=>`<rect x="47" y="56" width="6" height="40" rx="3" fill="#f3e6d8"/><circle cx="50" cy="38" r="30" fill="${c[0]}"/><path d="M50 38m-4 0a4 4 0 1 1 8 0 9 9 0 0 1-17 1 14 14 0 0 1 27-2 19 19 0 0 1-37 3" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>`},
+ brush:{ja:'絵筆',f:(c)=>`<g transform="rotate(35 50 50)"><rect x="45" y="40" width="10" height="56" rx="5" fill="${c[1]}"/><rect x="44" y="30" width="12" height="13" rx="2" fill="#d9d4de"/><path d="M44 31C44 18 48 8 50 4 52 8 56 18 56 31z" fill="${c[0]}"/></g><circle cx="22" cy="80" r="7" fill="${c[0]}"/><circle cx="34" cy="90" r="4" fill="${c[2]}"/>`},
+ lipstick:{ja:'口紅',f:(c)=>`<rect x="34" y="56" width="32" height="38" rx="4" fill="${c[1]}"/><rect x="38" y="42" width="24" height="16" rx="2" fill="#e6dce9"/><path d="M40 42V20L60 8V42z" fill="${c[0]}"/><path d="M44 38V22" stroke="#fff" stroke-width="3" opacity=".55" stroke-linecap="round"/>`},
+ compact:{ja:'コンパクト',f:(c)=>`<circle cx="50" cy="52" r="40" fill="${c[0]}"/><circle cx="50" cy="52" r="30" fill="${lighten(c[0],.65)}" stroke="#fff" stroke-width="3"/><path d="M34 42a20 20 0 0 1 14-12" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none"/><rect x="44" y="8" width="12" height="8" rx="3" fill="${darken(c[0],.15)}"/>`},
+ nail:{ja:'ネイルボトル',f:(c)=>`<rect x="38" y="6" width="24" height="36" rx="5" fill="${c[1]}"/><rect x="26" y="40" width="48" height="52" rx="14" fill="${c[0]}"/><rect x="33" y="48" width="8" height="30" rx="4" fill="#fff" opacity=".55"/>`},
+ balloon:{ja:'風船',f:(c)=>`<path d="M50 74q-6 10 2 16t-2 10" stroke="#9a8fa0" stroke-width="2" fill="none"/><ellipse cx="50" cy="38" rx="28" ry="33" fill="${c[0]}"/><path d="M45 70h10l-5 6z" fill="${c[0]}"/><ellipse cx="38" cy="26" rx="6" ry="10" transform="rotate(25 38 26)" fill="#fff" opacity=".55"/>`},
+ flower:{ja:'お花',f:(c)=>[0,1,2,3,4].map(i=>{const a=(i*72-90)*Math.PI/180;return`<circle cx="${(50+24*Math.cos(a)).toFixed(1)}" cy="${(50+24*Math.sin(a)).toFixed(1)}" r="20" fill="${c[0]}"/>`}).join('')+`<circle cx="50" cy="50" r="14" fill="${c[1]}"/><circle cx="46" cy="46" r="4" fill="#fff" opacity=".6"/>`},
+ sakura:{ja:'桜',f:(c)=>[0,1,2,3,4].map(i=>`<path d="M50 50C38 36 38 14 46 8l4 6 4-6c8 6 8 28-4 42z" fill="${c[0]}" transform="rotate(${i*72} 50 50)"/>`).join('')+`<circle cx="50" cy="50" r="6" fill="${darken(c[0],.2)}"/>`},
+ note:{ja:'音符',f:(c)=>`<path d="M34 20 78 10v52" stroke="${c[0]}" stroke-width="7" fill="none" stroke-linejoin="round"/><path d="M34 20v54" stroke="${c[0]}" stroke-width="7"/><ellipse cx="24" cy="76" rx="13" ry="10" fill="${c[0]}" transform="rotate(-20 24 76)"/><ellipse cx="68" cy="64" rx="13" ry="10" fill="${c[0]}" transform="rotate(-20 68 64)"/>`},
+ bubble:{ja:'しゃぼん玉',f:(c)=>`<circle cx="50" cy="50" r="40" fill="${c[0]}" fill-opacity=".25" stroke="${c[0]}" stroke-width="3"/><path d="M26 40a26 26 0 0 1 18-18" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="66" cy="70" r="4" fill="#fff"/>`},
+ drop:{ja:'しずく',f:(c)=>`<path d="M50 6C62 30 80 46 80 64a30 30 0 0 1-60 0c0-18 18-34 30-58z" fill="${c[0]}"/><path d="M36 62a14 14 0 0 0 8 16" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>`},
+ moon:{ja:'三日月',f:(c)=>`<path d="M64 8A42 42 0 1 0 92 70 34 34 0 0 1 64 8z" fill="${c[0]}"/><circle cx="34" cy="60" r="4" fill="#fff" opacity=".5"/>`},
+ butterfly:{ja:'ちょうちょ',f:(c)=>`<ellipse cx="30" cy="34" rx="22" ry="18" fill="${c[0]}" transform="rotate(-25 30 34)"/><ellipse cx="70" cy="34" rx="22" ry="18" fill="${c[0]}" transform="rotate(25 70 34)"/><ellipse cx="34" cy="66" rx="15" ry="13" fill="${c[1]}"/><ellipse cx="66" cy="66" rx="15" ry="13" fill="${c[1]}"/><rect x="46" y="26" width="8" height="54" rx="4" fill="${darken(c[0],.35)}"/><path d="M48 26q-6-14-14-16M52 26q6-14 14-16" stroke="${darken(c[0],.35)}" stroke-width="2.5" fill="none"/>`},
+ gift:{ja:'プレゼント',f:(c)=>`<rect x="14" y="44" width="72" height="48" rx="4" fill="${c[0]}"/><rect x="10" y="32" width="80" height="16" rx="4" fill="${darken(c[0],.08)}"/><rect x="45" y="32" width="10" height="60" fill="${c[1]}"/><path d="M50 32C40 14 22 16 30 28s20 4 20 4zM50 32c10-18 28-16 20-4s-20 4-20 4z" fill="${c[1]}"/>`},
+ snowflake:{ja:'雪の結晶',f:(c)=>[0,60,120].map(a=>`<g transform="rotate(${a} 50 50)"><path d="M50 8v84M50 22l-9-9M50 22l9-9M50 78l-9 9M50 78l9 9" stroke="${c[0]}" stroke-width="6" stroke-linecap="round" fill="none"/></g>`).join('')},
+ pencil:{ja:'えんぴつ',f:(c)=>`<g transform="rotate(-40 50 50)"><rect x="40" y="18" width="20" height="58" fill="${c[0]}"/><rect x="40" y="18" width="7" height="58" fill="#fff" opacity=".3"/><rect x="40" y="10" width="20" height="10" rx="2" fill="#f5a3b5"/><rect x="40" y="18" width="20" height="4" fill="#cfc6d4"/><path d="M40 76h20L50 96z" fill="#f2d3a8"/><path d="M46 89h8l-4 7z" fill="#4a3f4f"/></g>`},
+ blob:{ja:'ぷにぷにのかたまり',f:(c)=>`<path d="M20 70C6 56 14 30 34 26 44 12 70 12 78 30 96 38 94 66 78 76 64 92 34 88 20 70z" fill="${c[0]}"/><path d="M30 44a14 14 0 0 1 14-10" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".75"/><circle cx="66" cy="38" r="4" fill="#fff" opacity=".7"/>`},
+ clover:{ja:'クローバー',f:(c)=>[0,90,180,270].map(a=>`<path d="M50 50C36 40 28 26 36 20s14 2 14 10c0-8 6-16 14-10s0 20-14 30z" fill="${c[0]}" transform="rotate(${a} 50 50) translate(0 -6)"/>`).join('')+`<path d="M50 50q8 26 20 40" stroke="${darken(c[0],.2)}" stroke-width="4" fill="none"/>`},
+ leaf:{ja:'葉っぱ',f:(c)=>`<path d="M14 86C10 46 40 14 88 12 90 56 60 88 14 86z" fill="${c[0]}"/><path d="M14 86 70 30M36 64 34 46M50 50l16 2M58 40l-2-14" stroke="#fff" stroke-width="2.5" fill="none" opacity=".6" stroke-linecap="round"/>`},
+ bow:{ja:'ちょう結びのひも',f:(c)=>`<path d="M50 50C30 30 14 40 22 54s28-4 28-4zM50 50c20-20 36-10 28 4s-28-4-28-4z" fill="none" stroke="${c[0]}" stroke-width="7" stroke-linejoin="round"/><path d="M50 50 36 88M50 50l14 38" stroke="${c[0]}" stroke-width="7" stroke-linecap="round"/><circle cx="50" cy="50" r="7" fill="${c[0]}"/>`},
+};
+const MOTIF_IDS=Object.keys(MOTIFS);
+const JA2ID=Object.fromEntries(Object.entries(MOTIFS).map(([k,v])=>[v.ja,k]));
+function motifSVG(id,x,y,size,cols,rot=0){
+  const m=MOTIFS[id];if(!m)return'';
+  return`<g transform="translate(${(x-size/2).toFixed(1)} ${(y-size/2).toFixed(1)}) rotate(${rot} ${size/2} ${size/2}) scale(${(size/100).toFixed(4)})">${m.f(cols)}</g>`;
+}
+
+/* ================= キーワード辞書（ローカル生成用） ================= */
+const DICT=[
+ {keys:['ゆめかわ','ゆめ','夢','パステル','ゆめみ','ファンシー','かわいい','カワイイ','可愛い','女の子','ガーリー'],name:'ゆめかわパステル',mood:'パステルのペンキとリボンでつくる、ときめく売場',font:'rounded',
+  pal:{bg1:'#fff3f8',bg2:'#ffe1ef',main:'#ff5fa2',sub:'#a77bff',accent:'#38c7b5',ink:'#6e2552',colors:['#ff8fc0','#c7a6ff','#8fe3d6','#9fd4ff','#ffe58f','#ffb27a']},
+  motifs:['ribbon','crown','rainbow','heart','gem','sparkle'],pattern:'hearts',top:'drip',bottom:'lace',stitch:true,splash:true,pastel:true,
+  catch:['ときめき いっぱい！','ゆめかわ だいしゅうごう！'],sub:'かわいく あそぼ！',side:['かわいい','いっぱい'],bottom:'えらぶのも たのしい！',rails:['にんき','NEW','おすすめ']},
+ {keys:['キラキラ','きらきら','ラメ','グリッター','ホログラム','ホロ','シャイン','宝石','ジュエル'],name:'キラキラジュエル',mood:'宝石ときらめきで光る売場',font:'rounded',
+  pal:{bg1:'#f6f1ff',bg2:'#e7dcff',main:'#8a5cf6',sub:'#ff6fb1',accent:'#f2b705',ink:'#3a2370',colors:['#c9b4ff','#ffb3d6','#ffe28a','#a8e6ff','#b9f0d8','#ffc9a8']},
+  motifs:['sparkle','gem','star','crown','heart'],pattern:'sparkle',top:'scallop',bottom:'lace',stitch:true,splash:false,pastel:true,
+  catch:['キラキラ かがやく！','ひかる たからもの！'],sub:'キラッと えらんでね',side:['キラキラ','NEW'],bottom:'ひかる なかまが いっぱい',rails:['にんき','NEW','おすすめ']},
+ {keys:['コスメ','メイク','ネイル','おしゃれ','オシャレ','ビューティ','ビューティー','ドレッサー'],name:'おしゃれコスメ',mood:'コスメ小物とリボンで大人っぽくかわいい売場',font:'rounded',
+  pal:{bg1:'#fff4f4',bg2:'#ffe3e6',main:'#ec4f7b',sub:'#c98bd9',accent:'#e0a84f',ink:'#5d1f37',colors:['#ff9fb6','#f7c6d9','#e6c3f0','#ffd9a8','#ffffff','#f9b4c8']},
+  motifs:['lipstick','compact','nail','ribbon','heart','sparkle'],pattern:'dots',top:'drip',bottom:'lace',stitch:true,splash:true,pastel:true,
+  catch:['おしゃれ だいすき！','わたしだけの かわいい'],sub:'おしゃれを たのしもう',side:['おしゃれ','かわいい'],bottom:'きょうは どれにする？',rails:['にんき','NEW','おすすめ']},
+ {keys:['スイーツ','お菓子','おかし','ケーキ','マカロン','キャンディ','あまい','デザート'],name:'スイートパーティ',mood:'お菓子の甘い色でにぎやかな売場',font:'rounded',
+  pal:{bg1:'#fff8f0',bg2:'#ffe9dc',main:'#ff7a9c',sub:'#7ec8a8',accent:'#f5a742',ink:'#6b2f2a',colors:['#ffb3c4','#b8ebd4','#ffe1a3','#d6c2ff','#ffc49c','#a9dcff']},
+  motifs:['macaron','cupcake','candy','lollipop','heart'],pattern:'dots',top:'drip',bottom:'scallop',stitch:true,splash:false,pastel:true,
+  catch:['あまくて かわいい！','スイーツ パーティ！'],sub:'おいしそうな かわいさ',side:['あまい','かわいい'],bottom:'どれにしようかな？',rails:['にんき','NEW','おすすめ']},
+ {keys:['スライム','ぷにぷに','ねばねば','もちもち','ぷるぷる','のびのび','ジェル'],name:'ぷにぷにスライム',mood:'つやつやのしずくとあわで、さわりたくなる売場',font:'rounded',
+  pal:{bg1:'#effbff',bg2:'#d9f3fb',main:'#26b5c9',sub:'#ff6fae',accent:'#9b6bff',ink:'#11505c',colors:['#8fe3ef','#ffaed1','#c5b0ff','#b5f2c8','#fff19c','#ffc7a1']},
+  motifs:['blob','drop','bubble','sparkle','heart'],pattern:'dots',top:'drip',bottom:'scallop',stitch:true,splash:true,pastel:true,
+  catch:['さわって たのしい！','のびーる ぷにぷに！'],sub:'つくって あそぼう！',side:['のびーる','ぷにぷに'],bottom:'いろいろ えらべる！',rails:['にんき','NEW','おすすめ']},
+ {keys:['宇宙','ほし','ギャラクシー','夜空','ナイト','流れ星'],name:'ほしぞらギャラクシー',mood:'夜空に星がまたたく売場',font:'rounded',
+  pal:{bg1:'#2a2f6b',bg2:'#1a1d46',main:'#ffd54f',sub:'#ff8ac2',accent:'#7fe0ff',ink:'#141638',colors:['#ffd54f','#ff8ac2','#7fe0ff','#b79bff','#ffffff','#9fffd2']},
+  motifs:['star','moon','sparkle','cloud'],pattern:'stars',top:'scallop',bottom:'scallop',stitch:true,splash:false,pastel:false,
+  catch:['ほしぞら ワクワク！','きらめく よぞら'],sub:'ゆめの せかいへ',side:['ワクワク','NEW'],bottom:'ほしの なかまたち',rails:['にんき','NEW','おすすめ']},
+ {keys:['海','夏','サマー','マリン','水','プール','シャボン'],name:'さわやかマリン',mood:'水しぶきとあわで涼しげな売場',font:'rounded',
+  pal:{bg1:'#eefaff',bg2:'#d4efff',main:'#1f8fe0',sub:'#26c6b0',accent:'#ffb02e',ink:'#0d3a63',colors:['#8fd3ff','#a3f0e2','#fff0a3','#ffc2d4','#ffffff','#b7c9ff']},
+  motifs:['bubble','drop','star','sparkle'],pattern:'dots',top:'scallop',bottom:'scallop',stitch:true,splash:false,pastel:false,
+  catch:['なつを たのしもう！','さわやか あそび！'],sub:'みんなで あそぼう',side:['なつ','NEW'],bottom:'すずしく たのしく',rails:['にんき','NEW','おすすめ']},
+ {keys:['春','桜','さくら','新入学','入学','新学期','進級','文具','ぶんぐ'],name:'さくら新学期',mood:'桜とえんぴつで春らしい売場',font:'rounded',
+  pal:{bg1:'#fff6f8',bg2:'#ffe6ee',main:'#f06292',sub:'#5bbf6a',accent:'#f9a825',ink:'#5c2134',colors:['#ffc1d4','#c8ecb4','#ffe39a','#b9dcff','#ffffff','#ffd0b0']},
+  motifs:['sakura','pencil','flower','balloon'],pattern:'dots',top:'scallop',bottom:'scallop',stitch:true,splash:false,pastel:true,
+  catch:['しんがっき スタート！','ピカピカの 1ねんせい'],sub:'あたらしい なかま',side:['しんがっき','おうえん'],bottom:'じゅんびは ばっちり！',rails:['にんき','NEW','おすすめ']},
+ {keys:['クリスマス','冬','雪','ホリデー','サンタ'],name:'ホリデーギフト',mood:'雪とプレゼントであたたかい売場',font:'rounded',
+  pal:{bg1:'#fff7f2',bg2:'#ffe9df',main:'#d6283b',sub:'#2e8b57',accent:'#e5b320',ink:'#4a1016',colors:['#ff8a95','#9ed9b5','#ffe08a','#ffffff','#bcd9ff','#ffc0a8']},
+  motifs:['snowflake','gift','star','ribbon'],pattern:'stars',top:'scallop',bottom:'lace',stitch:true,splash:false,pastel:false,
+  catch:['ギフトに ぴったり！','わくわく ホリデー'],sub:'たいせつな ひとへ',side:['ギフト','NEW'],bottom:'プレゼントに どうぞ',rails:['にんき','NEW','おすすめ']},
+ {keys:['ハロウィン','おばけ','かぼちゃ'],name:'ナイトパーティ',mood:'紫とオレンジのにぎやかな夜',font:'rounded',
+  pal:{bg1:'#f6efff',bg2:'#e8dbff',main:'#7b3fe4',sub:'#ff8a1f',accent:'#38c172',ink:'#2a1052',colors:['#c3a3ff','#ffc07a','#a6efc4','#ffd6f0','#ffffff','#ffe77a']},
+  motifs:['moon','star','candy','lollipop'],pattern:'stars',top:'drip',bottom:'scallop',stitch:true,splash:false,pastel:false,
+  catch:['パーティ ナイト！','おかしを どうぞ'],sub:'みんなで たのしもう',side:['パーティ','NEW'],bottom:'よるの おたのしみ',rails:['にんき','NEW','おすすめ']},
+ {keys:['クール','かっこいい','カッコいい','男の子','バトル','スポーツ','スピード','パワー'],name:'クールパワー',mood:'力強い配色とストライプの売場',font:'gothic',
+  pal:{bg1:'#eef4ff',bg2:'#d6e4ff',main:'#1d4ed8',sub:'#f43f5e',accent:'#facc15',ink:'#0b1a44',colors:['#60a5fa','#facc15','#f87171','#34d399','#ffffff','#a78bfa']},
+  motifs:['star','sparkle'],pattern:'stripes',top:'none',bottom:'scallop',stitch:false,splash:false,pastel:false,
+  catch:['パワー ぜんかい！','かっこよく きめろ！'],sub:'きみも チャレンジ！',side:['パワー','NEW'],bottom:'つよさで えらべ！',rails:['にんき','NEW','おすすめ']},
+ {keys:['ナチュラル','やさしい','森','植物','エコ','北欧','シンプル'],name:'ナチュラルグリーン',mood:'葉っぱとお花でやさしい売場',font:'rounded',
+  pal:{bg1:'#fbf8f0',bg2:'#f0ead8',main:'#5a9a4a',sub:'#e0896b',accent:'#d6a93c',ink:'#2e3d22',colors:['#b6d8a3','#f4c2ae','#f2dc9b','#cfe3f2','#ffffff','#e3d0f0']},
+  motifs:['leaf','flower','clover'],pattern:'check',top:'scallop',bottom:'scallop',stitch:true,splash:false,pastel:false,
+  catch:['ほっと やさしい','しぜんの いろ'],sub:'まいにちに やさしさを',side:['やさしい','NEW'],bottom:'えらんで ほっこり',rails:['にんき','NEW','おすすめ']},
+ {keys:['音楽','ミュージック','アイドル','ライブ','ダンス','ステージ','うた'],name:'ステージライト',mood:'音符と星できらめくステージ',font:'rounded',
+  pal:{bg1:'#fff3fb',bg2:'#f6dcff',main:'#e83e8c',sub:'#6f42c1',accent:'#20c9d6',ink:'#3b0d3a',colors:['#ff9ccf','#c6a5ff','#8be9f0','#ffe58f','#ffffff','#ffb38f']},
+  motifs:['note','star','sparkle','heart','crown'],pattern:'stars',top:'drip',bottom:'lace',stitch:true,splash:true,pastel:true,
+  catch:['ステージで かがやこう！','うたって おどろう！'],sub:'あこがれの ステージ',side:['かがやけ','NEW'],bottom:'すきな いろで',rails:['にんき','NEW','おすすめ']},
+ {keys:['和','和風','お正月','年賀','伝統','着物','祭'],name:'はなやか和モダン',mood:'紅白と金のおめでたい売場',font:'gothic',
+  pal:{bg1:'#fff8ef',bg2:'#fbead2',main:'#c62828',sub:'#2e7d5b',accent:'#c9a227',ink:'#3a0f0f',colors:['#f48a8a','#9fd3b9','#f2d78a','#ffffff','#f7b6c8','#b7c9e8']},
+  motifs:['sakura','flower','cloud'],pattern:'check',top:'scallop',bottom:'scallop',stitch:false,splash:false,pastel:false,
+  catch:['はなやかに いろどる','めでたく たのしく'],sub:'おめでとうを かたちに',side:['はなやか','NEW'],bottom:'えらんで たのしい',rails:['にんき','NEW','おすすめ']},
+ {keys:['プリンセス','お姫さま','おひめさま','ロイヤル','ティアラ','ドレス'],name:'ロイヤルプリンセス',mood:'王冠と宝石で上品にかがやく売場',font:'rounded',
+  pal:{bg1:'#fdf3ff',bg2:'#f3dfff',main:'#c04fd6',sub:'#ff7aa8',accent:'#e5b84a',ink:'#4a1658',colors:['#e3b2ff','#ffb8d0','#ffe39a','#b9e2ff','#ffffff','#c9f2df']},
+  motifs:['crown','gem','ribbon','butterfly','heart','sparkle'],pattern:'hearts',top:'drip',bottom:'lace',stitch:true,splash:true,pastel:true,
+  catch:['あこがれの プリンセス','きらめく ドレスアップ'],sub:'すてきに へんしん',side:['すてき','NEW'],bottom:'わたしの おきにいり',rails:['にんき','NEW','おすすめ']},
+ {keys:['ポップ','カラフル','元気','たのしい','楽しい','おもちゃ','パーティ'],name:'カラフルポップ',mood:'元気な色の風船と星でにぎやかな売場',font:'rounded',
+  pal:{bg1:'#fffaf0',bg2:'#fff0d6',main:'#ff5a5f',sub:'#3fa9f5',accent:'#ffc61a',ink:'#3a1f1f',colors:['#ff9aa0','#8fd0ff','#ffe17a','#9ee6b0','#d1b3ff','#ffc093']},
+  motifs:['balloon','star','heart','candy','sparkle'],pattern:'dots',top:'scallop',bottom:'scallop',stitch:true,splash:false,pastel:false,
+  catch:['たのしさ いっぱい！','わくわく だいしゅうごう！'],sub:'みんなで あそぼう！',side:['たのしい','NEW'],bottom:'いろいろ えらべる！',rails:['にんき','NEW','おすすめ']},
+];
+const DEFAULT_DICT=DICT[DICT.length-1];
+// 商品名から種類を見つけて、遊び方・使い方の言葉を選ぶ
+const CATS=[
+ {keys:['スライム','ねんど','粘土','ジェル'],c:['さわって たのしい！','のびーる ぷにぷに！','いろんな色 そろってる！'],s:['のばして あそぼう！','まぜて たのしもう！','さわって きもちいい！'],b:['すきな色を えらんでね','どの色に しようかな？','まぜて つくろう！'],side:[['のびーる','ぷにぷに'],['まぜまぜ','ふわふわ']]},
+ {keys:['シール','ステッカー'],c:['はって デコろう！','あつめて たのしい！','いろんな柄 そろってる！'],s:['あつめて こうかんしよう','デコって かわいく！','はって たのしもう！'],b:['すきな柄を えらんでね','どれを あつめる？','おきにいりを みつけよう'],side:[['はって','デコろう'],['あつめて','こうかん']]},
+ {keys:['ペン','えんぴつ','鉛筆','ノート','文具','ふでばこ','筆箱','消しゴム','けしゴム'],c:['べんきょうも たのしく！','おきにいりで がんばろう！','かいて たのしい！'],s:['まいにち つかおう！','そろえて うれしい！','かくのが たのしくなる'],b:['おきにいりを みつけよう','どれに しようかな？','そろえて つかおう！'],side:[['べんきょう','がんばろ'],['かいて','たのしい']]},
+ {keys:['カレンダー','手帳','ダイアリー'],c:['らいねんも たのしく！','まいにちが たのしみ！','すてきな 1年に！'],s:['かざって たのしい','よていを かきこもう','おへやに かざろう'],b:['おきにいりの 1さつを','どれに しようかな？','らいねんの じゅんびを'],side:[['らいねんも','よろしく'],['まいにち','たのしく']]},
+ {keys:['コスメ','ネイル','リップ','メイク','アクセ','ヘア'],c:['おしゃれ だいすき！','かわいく へんしん！','いろいろ ためそう！'],s:['おしゃれを たのしもう','きょうは どれにする？','つけて かわいく！'],b:['すきな色を えらんでね','おきにいりを みつけよう','どれに しようかな？'],side:[['おしゃれ','たのしもう'],['かわいく','へんしん']]},
+ {keys:['ぬいぐるみ','マスコット','人形'],c:['ぎゅっと だっこ！','いつも いっしょ！','なかまが いっぱい！'],s:['だっこして しあわせ','あつめて たのしい','おうちに おむかえ'],b:['すきな子を えらんでね','どの子に しようかな？','なかまを ふやそう'],side:[['ぎゅっと','だっこ'],['いつも','いっしょ']]},
+ {keys:['パズル','ブロック','ゲーム','カード','トレカ','おもちゃ','玩具'],c:['あそんで ワクワク！','つくって たのしい！','みんなで あそぼう！'],s:['あたまを つかおう！','みんなで たのしもう','あつめて あそぼう'],b:['どれで あそぶ？','おきにいりを みつけよう','いろいろ えらべる！'],side:[['あそんで','ワクワク'],['みんなで','たのしく']]},
+ {keys:['お菓子','おかし','グミ','チョコ','キャンディ','ラムネ'],c:['おいしい しあわせ！','いろんな味 そろってる！','みんなで わけよう！'],s:['たべて にっこり','どの味に する？','おやつの じかん！'],b:['すきな味を えらんでね','どれに しようかな？','みんなで たのしもう'],side:[['おいしい','いっぱい'],['みんなで','わけよう']]},
+];
+function autoCopy(name,hits,seed){
+  const R=rng(hashStr(name)+seed*7919);const pick=a=>a[Math.floor(R()*a.length)];
+  const cat=CATS.find(c=>c.keys.some(k=>name.includes(k)));
+  const base=hits[0]||DEFAULT_DICT;
+  const catches=[...(cat?cat.c:[]),...hits.flatMap(h=>h.catch),...(cat||hits.length?[]:DEFAULT_DICT.catch)];
+  const subs=[...(cat?cat.s:[]),...hits.map(h=>h.sub),...(cat||hits.length?[]:[DEFAULT_DICT.sub])];
+  const bottoms=[...(cat?cat.b:[]),...hits.map(h=>h.bottom),'どれに しようかな？'];
+  const sides=[...(cat?cat.side:[]),...hits.map(h=>h.side),...(cat||hits.length?[]:[DEFAULT_DICT.side])];
+  const c=pick(catches),sb=pick(subs.filter(x=>x!==c))||base.sub,bt=pick(bottoms.filter(x=>x!==sb&&x!==c))||base.bottom;
+  return{title:name||'商品名',catch:c,sub:sb,side:pick(sides).slice(),bottom:bt,rails:pick([['にんき','NEW','おすすめ'],['にんき','しんさく','おすすめ'],['ランキング','NEW','イチオシ']])};
+}
+
+const KW_SUGGEST=['ゆめかわ','キラキラ','コスメ','スイーツ','スライム','プリンセス','ポップ','クール','ナチュラル','宇宙','海','新入学','クリスマス','和'];
+
+const PATTERNS={hearts:'ハート柄',dots:'水玉',stars:'星柄',sparkle:'きらきら柄',stripes:'ストライプ',check:'チェック',none:'なし'};
+const TOPS={drip:'ペンキのしずく',scallop:'波形（スカラップ）',none:'なし'};
+const BOTTOMS={lace:'レース',scallop:'波形（スカラップ）',none:'なし'};
+
+/* ================= 版権名などの簡易チェック ================= */
+const BLOCK=['キティ','マイメロ','クロミ','シナモロール','シナモン','ポムポム','プリン','ポチャッコ','ハンギョドン','サンリオ','ピカチュウ','ポケモン','ミッキー','ミニー','ディズニー','ドラえもん','アンパンマン','すみっコ','リラックマ','カービィ','マリオ','スヌーピー','ムーミン','ミッフィー','プリキュア','ちいかわ','ハチワレ','うさぎ','ジバニャン','妖怪ウォッチ','セーラームーン','アイカツ','プリパラ','たまごっち','ちびまる子','しまじろう','ぐでたま','キキララ','エルサ','アナと','ラプンツェル','トトロ','ジブリ','ナルト','鬼滅','呪術','ワンピース','ハローキティ'];
+function blockedIn(s){const t=String(s||'');return BLOCK.filter(w=>w!=='うさぎ'&&w!=='プリン'&&t.includes(w))}
+
+/* ================= 画像の色分析（画像はPOPに入れない） ================= */
+let IMG_COLORS=[];
+async function analyzeImage(file){
+  const url=URL.createObjectURL(file);
+  const img=new Image();await new Promise((r,j)=>{img.onload=r;img.onerror=j;img.src=url});
+  const N=72,c=document.createElement('canvas');const sc=N/Math.max(img.width,img.height);c.width=Math.max(1,Math.round(img.width*sc));c.height=Math.max(1,Math.round(img.height*sc));
+  const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+  const d=x.getImageData(0,0,c.width,c.height).data;const px=[];
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<128)continue;const[h,s,l]=r2hsl(d[i],d[i+1],d[i+2]);if(l>.94||l<.08)continue;px.push([d[i],d[i+1],d[i+2],s])}
+  if(px.length<20)return[];
+  const K=6;const R=rng(7);let cen=Array.from({length:K},()=>px[Math.floor(R()*px.length)].slice(0,3));
+  let asg=new Array(px.length).fill(0);
+  for(let it=0;it<12;it++){
+    for(let i=0;i<px.length;i++){let b=0,bd=1e9;for(let k=0;k<K;k++){const q=cen[k];const dd=(px[i][0]-q[0])**2+(px[i][1]-q[1])**2+(px[i][2]-q[2])**2;if(dd<bd){bd=dd;b=k}}asg[i]=b}
+    const sum=Array.from({length:K},()=>[0,0,0,0]);for(let i=0;i<px.length;i++){const s=sum[asg[i]];s[0]+=px[i][0];s[1]+=px[i][1];s[2]+=px[i][2];s[3]++}
+    cen=sum.map((s,k)=>s[3]?[s[0]/s[3],s[1]/s[3],s[2]/s[3]]:cen[k]);
+  }
+  const cnt=new Array(K).fill(0);asg.forEach(a=>cnt[a]++);
+  return cen.map((c,k)=>{const h=r2h(...c);const[,s]=hsl(h);return{hex:h,ratio:cnt[k]/px.length,sat:s}}).filter(o=>o.ratio>.02)
+    .sort((a,b)=>(b.ratio*(.4+b.sat))-(a.ratio*(.4+a.sat)));
+}
+
+/* ================= テーマ設計図 ================= */
+function getInputs(){
+  return{name:$('#in-name').value.trim(),official:$('#in-official').value.trim(),
+    refs:$('#in-refs').value.split(/\s*\n\s*/).map(s=>s.trim()).filter(Boolean),
+    keywords:$('#in-kw').value.split(/[、,，\s　]+/).map(s=>s.trim()).filter(Boolean),
+    strength:document.querySelector('input[name=st]:checked').value,
+    gondolas:+document.querySelector('input[name=gon]:checked').value,
+    officialCopy:$('#in-offcopy').checked,engine:document.querySelector('input[name=eng]:checked').value,
+    imageColors:IMG_COLORS.map(c=>c.hex)};
+}
+function localTheme(inp){
+  const kws=inp.keywords.length?inp.keywords:[];
+  const hits=[];for(const kw of kws)for(const e of DICT)if(e.keys.some(k=>kw.includes(k)||k.includes(kw))&&!hits.includes(e))hits.push(e);
+  const base=hits[0]||DEFAULT_DICT;const R=rng(hashStr(inp.name+kws.join()));
+  let motifs=[];for(const e of(hits.length?hits:[base]))for(const m of e.motifs)if(!motifs.includes(m))motifs.push(m);
+  motifs=motifs.slice(0,8);
+  const P=JSON.parse(JSON.stringify(base.pal));const ic=inp.imageColors;
+  if(ic.length){
+    const pz=base.pastel?pastel:vivid;
+    if(inp.strength==='low'){P.accent=vivid(ic[0])}
+    else if(inp.strength==='mid'){P.main=vivid(ic[0]);if(ic[1])P.sub=vivid(ic[1]);P.colors=[pz(ic[0]),...(ic[1]?[pz(ic[1])]:[]),...(ic[2]?[pz(ic[2])]:[]),...base.pal.colors].slice(0,6)}
+    else{P.main=vivid(ic[0]);P.sub=vivid(ic[1]||setL(ic[0],.7));P.accent=vivid(ic[2]||base.pal.accent);P.bg1=lighten(ic[0],.92);P.bg2=lighten(ic[0],.8);P.ink=inkOf(ic[0]);P.colors=ic.slice(0,5).map(pz).concat(base.pal.colors).slice(0,6)}
+    if(inp.strength!=='low')P.ink=inkOf(P.main);
+  }
+  const pick=a=>a[Math.floor(R()*a.length)];
+  return{version:1,engine:'local',name:(hits.length>1?hits.slice(0,2).map(e=>e.name).join('×'):base.name),mood:base.mood,strength:inp.strength,font:hits.find(e=>e.font==='gothic')&&!hits.find(e=>e.font==='rounded')?'gothic':base.font,
+    palette:P,motifs,pattern:base.pattern,top:base.top,bottom:base.bottom,stitch:base.stitch,splash:base.splash,
+    copy:autoCopy(inp.name,hits,0),copySeed:0,
+    officialCopy:'',sources:[...(inp.official?[{url:inp.official,role:'公式',status:'unread'}]:[]),...inp.refs.map(u=>({url:u,role:'参考',status:'unread'}))],
+    facts:[],rejected:[],keywordHits:hits.map(e=>e.name)};
+}
+const SCHEMA_TXT=`{
+ "name":"テーマ名(短く)","mood":"雰囲気の説明(1文)",
+ "font":"rounded|gothic",
+ "palette":{"bg1":"#RRGGBB","bg2":"#RRGGBB","main":"#RRGGBB","sub":"#RRGGBB","accent":"#RRGGBB","ink":"#RRGGBB(濃い縁取り色)","colors":["#RRGGBB" x6 (ペンキ・虹などの多色)]},
+ "motifs":["モチーフID",...3〜8個],
+ "pattern":"${Object.keys(PATTERNS).join('|')}","top":"${Object.keys(TOPS).join('|')}","bottom":"${Object.keys(BOTTOMS).join('|')}",
+ "stitch":true/false,"splash":true/false,
+ "copy":{"title":"商品名(表示用)","catch":"キャッチコピー(12字以内)","sub":"サブコピー(12字以内)","side":["サイド左(5字以内)","サイド右(5字以内)"],"bottom":"下段のひとこと(12字以内)","rails":["棚ラベル1(4字以内)","棚ラベル2","棚ラベル3"]},
+ "officialCopy":"公式キャッチコピーの原文(見つからなければ空)",
+ "facts":["ページから読み取った特徴(キーカラー・雰囲気・遊び方など)を短く3〜6個"]
+}`;
+function buildPrompt(inp,forGemini){
+  const st={low:'控えめ（公式の雰囲気をほんのり感じる程度。配色はキーワード中心）',mid:'標準（公式のキーカラーと雰囲気を取り入れる）',high:'強め（公式のキーカラー・雰囲気をはっきり反映。ただしデザインの模倣はしない）'}[inp.strength];
+  return `あなたは日本の小売店の売場POPを作るアートディレクターです。次の商品から「公式にインスパイアされた、オリジナルの売場テーマ」を設計してください。
+
+# 厳守ルール（著作権への配慮）
+- 公式のロゴ・画像・レイアウト・キャラクターを真似しない。キャラクター名・キャラクターの見た目を出力に含めない。
+- motifs は次の汎用モチーフIDの中からだけ選ぶ: ${MOTIF_IDS.map(k=>k+'('+MOTIFS[k].ja+')').join(', ')}
+- 文言(copy)は自分で考えたオリジナル。公式のキャッチコピーは officialCopy に原文のまま別に入れる(copyには入れない)。
+- 子どもにも読みやすい、ひらがな多めの短い文言にする。商品名(copy.title)は入力の商品名をそのまま使う。
+- 参考にする強さ: ${st}
+
+# 入力
+- 商品名: ${inp.name||'(未入力)'}
+- 公式ページ: ${inp.official||'(なし)'}
+- 参考ページ: ${inp.refs.length?inp.refs.join(' , '):'(なし)'}
+- イメージキーワード: ${inp.keywords.join('、')||'(なし)'}
+- 商品画像から抽出した色(多い順): ${inp.imageColors.join(', ')||'(なし)'}
+
+${forGemini?'# 手順\n公式ページと参考ページの内容を読み、キーカラー・雰囲気・商品の特徴・公式キャッチコピーを把握してから設計してください。':'# 注意\nあなたはURLを開けません。商品名・URLの文字列・キーワード・色から推測してください。知らない商品なら一般的な商品として考え、facts には「推測」と書いてください。'}
+
+# 出力
+JSONだけを出力(説明文やコードブロックは不要)。形式:
+${SCHEMA_TXT}`;
+}
+function parseJSONLoose(t){if(typeof t==='object')return t;t=String(t).replace(/^[\s\S]*?```(?:json)?/i,m=>m.includes('```')?'':m).replace(/```[\s\S]*$/,'');const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0)throw new Error('AIの答えにJSONがありません');return JSON.parse(t.slice(a,b+1))}
+// AIの答えをアプリのルールで検査して整える
+function sanitize(raw,inp,engine){
+  const base=localTheme(inp);const t=JSON.parse(JSON.stringify(base));t.engine=engine;const rej=[];
+  const s=(v,max,d)=>{v=typeof v==='string'?v.trim():'';if(!v)return d;return Array.from(v).slice(0,max).join('')};
+  t.name=s(raw.name,24,t.name);t.mood=s(raw.mood,60,t.mood);t.font=raw.font==='gothic'?'gothic':'rounded';
+  const rp=raw.palette||{};for(const k of['bg1','bg2','main','sub','accent','ink']){const v=okHex(rp[k],null);if(v)t.palette[k]=v;else if(rp[k])rej.push('色の値 '+k+'='+rp[k])}
+  if(Array.isArray(rp.colors)){const cs=rp.colors.map(c=>okHex(c,null)).filter(Boolean);if(cs.length>=3)t.palette.colors=cs.slice(0,6)}
+  if(Array.isArray(raw.motifs)){const ok=[];for(let m of raw.motifs){m=String(m).trim();const id=MOTIFS[m]?m:JA2ID[m];if(id&&!ok.includes(id))ok.push(id);else if(!id)rej.push('一覧にないモチーフ「'+m+'」')}if(ok.length)t.motifs=ok.slice(0,8)}
+  if(PATTERNS[raw.pattern])t.pattern=raw.pattern;if(TOPS[raw.top])t.top=raw.top;if(BOTTOMS[raw.bottom])t.bottom=raw.bottom;
+  if(typeof raw.stitch==='boolean')t.stitch=raw.stitch;if(typeof raw.splash==='boolean')t.splash=raw.splash;
+  const c=raw.copy||{};
+  t.copy.title=inp.name||s(c.title,20,t.copy.title);t.copy.catch=s(c.catch,16,t.copy.catch);t.copy.sub=s(c.sub,16,t.copy.sub);
+  if(Array.isArray(c.side))t.copy.side=[s(c.side[0],6,t.copy.side[0]),s(c.side[1],6,t.copy.side[1])];
+  t.copy.bottom=s(c.bottom,16,t.copy.bottom);if(Array.isArray(c.rails))t.copy.rails=[0,1,2].map(i=>s(c.rails[i],6,t.copy.rails[i]));
+  t.officialCopy=s(raw.officialCopy,60,'');t.facts=Array.isArray(raw.facts)?raw.facts.slice(0,8).map(f=>s(f,80,'')).filter(Boolean):[];
+  // キャラクター名などを弾く
+  const fields=[['catch'],['sub'],['bottom'],['side',0],['side',1],['rails',0],['rails',1],['rails',2]];
+  for(const f of fields){const v=f.length>1?t.copy[f[0]][f[1]]:t.copy[f[0]];const b=blockedIn(v);if(b.length){rej.push('文言にキャラクター名など（'+b.join('・')+'）→ 差し替え');const d=f.length>1?base.copy[f[0]][f[1]]:base.copy[f[0]];if(f.length>1)t.copy[f[0]][f[1]]=d;else t.copy[f[0]]=d}}
+  if(blockedIn(t.name).length){rej.push('テーマ名にキャラクター名など → 差し替え');t.name=base.name}
+  t.rejected=rej;return t;
+}
+function applyOfficialSwitch(t,inp){
+  t.useOfficialCopy=!!inp.officialCopy;
+  if(t.officialCopy){
+    const oc=t.officialCopy.replace(/\s/g,'');
+    if(inp.officialCopy){t.copy.catch=Array.from(t.officialCopy).slice(0,16).join('')}
+    else{for(const k of['catch','sub','bottom']){const v=(t.copy[k]||'').replace(/\s/g,'');if(v.length>=5&&(oc.includes(v)||v.includes(oc.slice(0,8)))){t.rejected.push('「'+k+'」が公式コピーと同じ → オリジナルに差し替え');t.copy[k]=localTheme(inp).copy[k]}}}
+  }
+  return t;
+}
+
+/* ---- AI呼び出し ---- */
+let DOWNLOADS=null;
+async function genOpenRouter(inp){
+  const key=$('#or-key').value.trim();if(!key)throw new Error('OpenRouter APIキーを入力してください');
+  const model=$('#or-model').value.trim()||'openrouter/free';
+  let res;
+  try{res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'X-Title':'Uriba POP Maker'},body:JSON.stringify({model,messages:[{role:'user',content:buildPrompt(inp,false)}],temperature:.8})})}
+  catch(e){throw new Error('OpenRouterに接続できませんでした。Claudeの中で開いている場合は接続できません。自分のサイトに置いたページか、HTMLファイルを直接開いて使ってください。')}
+  const j=await res.json().catch(()=>({}));
+  if(!res.ok){const m=j.error?.message||res.status;throw new Error('OpenRouterのエラー: '+m+(res.status===429?'\n（無料モデルの回数上限です。時間をおいてください）':''))}
+  const text=j.choices?.[0]?.message?.content||'';
+  const raw=parseJSONLoose(text);const t=sanitize(raw,inp,'openrouter');
+  if(j.model)t.facts.unshift('使われた無料モデル: '+j.model);
+  t.sources.forEach(s=>s.status='notread');return t;
+}
+async function genGemini(inp){
+  const key=$('#gem-key').value.trim();if(!key)throw new Error('Gemini APIキーを入力してください');
+  const model=($('#gem-model').value.trim()||'gemini-flash-latest').replace(/^models\//,'');
+  const body={contents:[{role:'user',parts:[{text:buildPrompt(inp,true)}]}],tools:[{url_context:{}}],generationConfig:{temperature:.8}};
+  let res;
+  try{res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)})}
+  catch(e){throw new Error('Geminiに接続できませんでした。Claudeの中で開いている場合は接続できません。自分のサイト（Firebase Hostingなど）に置いたページで使ってください。')}
+  const j=await res.json().catch(()=>({}));
+  if(!res.ok){const m=j.error?.message||res.status;throw new Error('Geminiのエラー: '+m+(res.status===429?'\n（無料枠の回数を使い切った可能性があります。時間をおくか、ローカルで作ってください）':''))}
+  const cand=j.candidates?.[0];const text=(cand?.content?.parts||[]).map(p=>p.text||'').join('');
+  const raw=parseJSONLoose(text);const t=sanitize(raw,inp,'gemini');
+  const meta=cand?.urlContextMetadata?.urlMetadata||cand?.url_context_metadata?.url_metadata||[];
+  for(const s of t.sources){const m=meta.find(x=>(x.retrievedUrl||x.retrieved_url||'').replace(/\/$/,'')===s.url.replace(/\/$/,''));
+    const st=m&&(m.urlRetrievalStatus||m.url_retrieval_status);s.status=!m?'unknown':/SUCCESS/.test(st)?'ok':'ng'}
+  return t;
+}
+
+/* ================= 描画部品 ================= */
+let LOG=[];
+function patternDef(T,id,cell){
+  const P=T.palette,cs=P.colors,o=.32;
+  const a=cs[0],b=cs[1]||cs[0];
+  switch(T.pattern){
+    case'hearts':return`<pattern id="${id}" width="${cell}" height="${cell}" patternUnits="userSpaceOnUse">${motifSVG('heart',cell*.25,cell*.25,cell*.22,[a])}${motifSVG('heart',cell*.75,cell*.75,cell*.18,[b])}</pattern>`.replace(/<ellipse[^>]*\/>/g,'');
+    case'dots':return`<pattern id="${id}" width="${cell}" height="${cell}" patternUnits="userSpaceOnUse"><circle cx="${cell*.25}" cy="${cell*.25}" r="${cell*.08}" fill="${a}"/><circle cx="${cell*.75}" cy="${cell*.75}" r="${cell*.08}" fill="${b}"/></pattern>`;
+    case'stars':return`<pattern id="${id}" width="${cell}" height="${cell}" patternUnits="userSpaceOnUse"><polygon points="${starPts(cell*.25,cell*.27,cell*.1,cell*.045)}" fill="${a}"/><polygon points="${starPts(cell*.75,cell*.77,cell*.07,cell*.03)}" fill="${b}"/></pattern>`;
+    case'sparkle':return`<pattern id="${id}" width="${cell}" height="${cell}" patternUnits="userSpaceOnUse">${motifSVG('sparkle',cell*.27,cell*.27,cell*.26,[a,b])}${motifSVG('sparkle',cell*.75,cell*.75,cell*.16,[b,a])}</pattern>`;
+    case'stripes':return`<pattern id="${id}" width="${cell*.5}" height="${cell*.5}" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="${cell*.2}" height="${cell*.5}" fill="#ffffff"/></pattern>`;
+    case'check':return`<pattern id="${id}" width="${cell*.6}" height="${cell*.6}" patternUnits="userSpaceOnUse"><rect width="${cell*.3}" height="${cell*.6}" fill="${a}" opacity=".5"/><rect width="${cell*.6}" height="${cell*.3}" fill="${a}" opacity=".5"/></pattern>`;
+  }return'';
+}
+function background(T,W,H,cell=40){
+  const P=T.palette,g=uid('bg'),p=uid('pt');
+  const pd=patternDef(T,p,cell);
+  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.bg1}"/><stop offset="1" stop-color="${P.bg2}"/></linearGradient>${pd}</defs><rect width="${W}" height="${H}" fill="url(#${g})"/>${pd?`<rect width="${W}" height="${H}" fill="url(#${p})" opacity="${T.pattern==='stripes'?.45:.38}"/>`:''}`;
+}
+function dripEdge(T,W,band,maxLen,R){
+  const cs=T.palette.colors;const n=Math.max(2,Math.round(W/70));const sw=W/n;let s='';
+  for(let i=0;i<n;i++){
+    const x0=i*sw,col=cs[i%cs.length];
+    s+=`<rect x="${(x0-.3).toFixed(1)}" y="0" width="${(sw+.6).toFixed(1)}" height="${band}" fill="${col}"/>`;
+    const k=1+(R()<.55?1:0);
+    for(let j=0;j<k;j++){
+      const dw=band*(.45+R()*.35),cx=x0+sw*(.2+R()*.6),L=band+maxLen*(.25+R()*.75);
+      s+=`<path d="M${(cx-dw/2).toFixed(1)} ${band-1}V${(L-dw/2).toFixed(1)}A${(dw/2).toFixed(1)} ${(dw/2).toFixed(1)} 0 0 0 ${(cx+dw/2).toFixed(1)} ${(L-dw/2).toFixed(1)}V${band-1}Z" fill="${col}"/>`;
+      s+=`<ellipse cx="${(cx-dw*.18).toFixed(1)}" cy="${(L-dw*.55).toFixed(1)}" rx="${(dw*.12).toFixed(1)}" ry="${(dw*.22).toFixed(1)}" fill="#fff" opacity=".7"/>`;
+    }
+    for(let q=0;q<3;q++){const cx=x0+sw*(q+.5)/3;s+=`<circle cx="${cx.toFixed(1)}" cy="${band}" r="${(band*.35).toFixed(1)}" fill="${col}"/>`}
+    s+=`<rect x="${(x0+sw*.08).toFixed(1)}" y="${(band*.25).toFixed(1)}" width="${(sw*.25).toFixed(1)}" height="${(band*.16).toFixed(1)}" rx="${(band*.08).toFixed(1)}" fill="#fff" opacity=".55"/>`;
+  }
+  return s;
+}
+function scallopTop(T,W,h){const r=h*.55,n=Math.ceil(W/(r*2));let s=`<rect width="${W}" height="${h*.5}" fill="${T.palette.main}"/>`;for(let i=0;i<=n;i++)s+=`<circle cx="${(i*r*2).toFixed(1)}" cy="${(h*.5).toFixed(1)}" r="${r.toFixed(1)}" fill="${T.palette.main}"/>`;
+  for(let i=0;i<=n;i++)s+=`<circle cx="${(i*r*2).toFixed(1)}" cy="${(h*.48).toFixed(1)}" r="${(r*.22).toFixed(1)}" fill="#fff" opacity=".8"/>`;return s}
+function lace(T,W,H,h,white=true){
+  const top=H-h,r=h*.42,n=Math.ceil(W/(r*2))+1;const col=white?'#ffffff':T.palette.main;let s='';
+  s+=`<rect x="0" y="${(top+r).toFixed(1)}" width="${W}" height="${(h-r+1).toFixed(1)}" fill="${col}"/>`;
+  for(let i=0;i<n;i++){const cx=i*r*2+r;s+=`<circle cx="${cx.toFixed(1)}" cy="${(top+r).toFixed(1)}" r="${r.toFixed(1)}" fill="${col}"/>`;
+    if(white)s+=`<circle cx="${cx.toFixed(1)}" cy="${(top+r*.9).toFixed(1)}" r="${(r*.28).toFixed(1)}" fill="${T.palette.colors[i%T.palette.colors.length]}"/>`}
+  if(white)s+=`<line x1="0" y1="${(top+r*1.75).toFixed(1)}" x2="${W}" y2="${(top+r*1.75).toFixed(1)}" stroke="${T.palette.main}" stroke-width="${(h*.05).toFixed(2)}" stroke-dasharray="${(h*.12).toFixed(1)} ${(h*.09).toFixed(1)}" stroke-linecap="round"/>`;
+  return s;
+}
+function bottomEdge(T,W,H,h){if(T.bottom==='lace')return lace(T,W,H,h,true);if(T.bottom==='scallop')return lace(T,W,H,h*.8,false);return''}
+function topEdge(T,W,h,R){if(T.top==='drip')return dripEdge(T,W,h*.5,h*.9,R);if(T.top==='scallop')return scallopTop(T,W,h*.6);return''}
+function topEdgeDepth(T,h){return T.top==='drip'?h*1.4:T.top==='scallop'?h*.6:0}
+function stitch(T,W,H,ins,sw){return T.stitch?`<rect x="${ins}" y="${ins}" width="${W-ins*2}" height="${H-ins*2}" rx="${ins*1.2}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-dasharray="${sw*3} ${sw*2.2}" stroke-linecap="round" opacity=".95"/>`:''}
+function splashBlob(x,y,r,col,R){let pts=[];const n=14;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,rr=r*(.78+R()*.32);pts.push([x+rr*Math.cos(a),y+rr*Math.sin(a)])}
+  let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n];const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;d+=`Q${p[0].toFixed(1)} ${p[1].toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`}
+  let s=`<path d="${d}Z" fill="${col}" opacity=".55"/>`;for(let i=0;i<6;i++){const a=R()*Math.PI*2,rr=r*(1.1+R()*.35);s+=`<circle cx="${(x+rr*Math.cos(a)).toFixed(1)}" cy="${(y+rr*Math.sin(a)).toFixed(1)}" r="${(r*(.05+R()*.08)).toFixed(1)}" fill="${col}" opacity=".6"/>`}return s}
+function mcols(T,i){const cs=[T.palette.main,T.palette.sub,T.palette.accent,...T.palette.colors.map(vivid)];return[cs[i%cs.length],cs[(i+1)%cs.length],cs[(i+2)%cs.length],cs[(i+3)%cs.length]]}
+// 長方形の区域にモチーフを並べる（重ならない格子配置）
+function motifsInZone(T,zone,ids,R,maxSize,offset=0){
+  if(!ids.length)return'';const{x1,y1,x2,y2}=zone;const w=x2-x1,h=y2-y1;if(w<15||h<15)return'';
+  let s='';const n=ids.length;
+  const cols=Math.max(1,Math.round(Math.sqrt(n*w/h)));const rows=Math.ceil(n/cols);
+  const cw=w/cols,ch=h/rows;const size=Math.min(maxSize,cw*.86,ch*.86);
+  for(let i=0;i<n;i++){const c=i%cols,r=Math.floor(i/cols);
+    const cx=x1+cw*(c+.5)+(R()-.5)*(cw-size)*.6,cy=y1+ch*(r+.5)+(R()-.5)*(ch-size)*.6;
+    if(T.splash)s+=splashBlob(cx,cy,size*.55,T.palette.colors[(i+offset+2)%T.palette.colors.length],R);
+    s+=motifSVG(ids[i],cx,cy,size,mcols(T,i+offset),(R()-.5)*24)}
+  return s;
+}
+function sparklesAround(T,box,count,R,size){let s='';for(let i=0;i<count;i++){const a=R()*Math.PI*2;const x=(box.x1+box.x2)/2+Math.cos(a)*((box.x2-box.x1)/2+size*.6);const y=(box.y1+box.y2)/2+Math.sin(a)*((box.y2-box.y1)/2+size*.5);s+=motifSVG('sparkle',x,y,size*(.6+R()*.5),[T.palette.colors[i%T.palette.colors.length],'#fff'])}return s}
+function ribbonBanner(T,cx,cy,w,h){
+  const P=T.palette,g=uid('rb'),t=h*.55;
+  return`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lighten(P.main,.25)}"/><stop offset=".5" stop-color="${P.main}"/><stop offset="1" stop-color="${darken(P.main,.12)}"/></linearGradient></defs>
+<path d="M${cx-w/2-t*1.6} ${cy-h*.3}h${t*2}v${h*.85}h${-t*2}l${t*.7} ${-h*.42}z" fill="${darken(P.main,.2)}"/><path d="M${cx+w/2+t*1.6} ${cy-h*.3}h${-t*2}v${h*.85}h${t*2}l${-t*.7} ${-h*.42}z" fill="${darken(P.main,.2)}"/>
+<rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" rx="${h*.18}" fill="url(#${g})"/>
+<rect x="${cx-w/2+h*.12}" y="${cy-h/2+h*.12}" width="${w-h*.24}" height="${h*.76}" rx="${h*.12}" fill="none" stroke="#fff" stroke-width="${h*.035}" stroke-dasharray="${h*.1} ${h*.07}" stroke-linecap="round"/>`;
+}
+function flowerBadge(T,cx,cy,r){const P=T.palette;let s='';const n=10;
+  for(let i=0;i<n;i++){const a=i/n*Math.PI*2;s+=`<circle cx="${(cx+r*.78*Math.cos(a)).toFixed(1)}" cy="${(cy+r*.78*Math.sin(a)).toFixed(1)}" r="${(r*.3).toFixed(1)}" fill="${P.colors[i%P.colors.length]}"/>`}
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r*.8}" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="${r*.72}" fill="none" stroke="${P.main}" stroke-width="${r*.03}" stroke-dasharray="${r*.08} ${r*.06}" stroke-linecap="round"/>`;
+  s+=motifSVG('ribbon',cx,cy+r*1.02,r*.85,[P.main,P.accent,P.sub]);return s}
+
+/* ================= 各媒体 ================= */
+const FK=T=>T.font==='gothic'?'gothic':'rounded';
+function seamsOf(n){const a=[];for(let k=1;k<n;k++)a.push(900*k);return a}
+function topBoard(T,n){
+  const W=900*n,H=297,P=T.palette,R=rng(hashStr(T.name+'top'));const fk=FK(T);const seams=seamsOf(n);
+  let s=background(T,W,H,44);
+  const te=topEdgeDepth(T,26);const bh=T.bottom==='none'?0:26;
+  // 商品名：文字の高さ約9cmを目安。いちばん大きく
+  const zoneM=n===1?125:200;
+  const nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92,-.02);
+  const ny=Math.max(te+48,150)+12;
+  const nm=placeH(nameRun,W/2,ny,seams);
+  // キャッチ（上・小さめ）
+  const catchRun=fitH(T.copy.catch,fk,36,Math.min(W-zoneM*2,600*n),Math.min(30,nameRun.ink.h*.38),0);
+  const cy=Math.max(te+4+catchRun.ink.h/2,nm.box.y1-catchRun.ink.h/2-10);
+  const ct=placeH(catchRun,W/2,cy,seams);
+  // サブコピー（リボン）
+  const subRun=fitH(T.copy.sub,fk,26,Math.min(W-zoneM*2-60,520*n),22,0);
+  const sy=Math.min(H-bh-22,nm.box.y2+26);
+  const sb=placeH(subRun,W/2,sy,seams);
+  // モチーフ（商品名の左右の区域）
+  const ids=T.motifs.length?T.motifs:['star'];const half=Math.ceil(ids.length/2);
+  const yz1=te+6,yz2=H-bh-8;
+  const L={x1:16,y1:yz1,x2:Math.min(nm.box.x1,ct.box.x1,sb.box.x1-50)-14,y2:yz2},Rz={x1:Math.max(nm.box.x2,ct.box.x2,sb.box.x2+50)+14,y1:yz1,x2:W-16,y2:yz2};
+  s+=motifsInZone(T,L,ids.slice(0,half),R,120,0)+motifsInZone(T,Rz,ids.slice(half).length?ids.slice(half):ids.slice(0,1),R,120,3);
+  s+=sparklesAround(T,nm.box,n*4,R,20);
+  s+=topEdge(T,W,26,R)+bottomEdge(T,W,H,26)+stitch(T,W,H,7,1.1);
+  s+=ribbonBanner(T,W/2,sy,subRun.ink.w+46,34)+deco(sb,textStyle(P,'white',subRun.size));
+  s+=deco(ct,textStyle(P,'catch',catchRun.size))+deco(nm,textStyle(P,'name',nameRun.size));
+  LOG.push(`トップボード：商品名の文字の高さ ${(nameRun.ink.h/10).toFixed(1)}cm／キャッチ ${(catchRun.ink.h/10).toFixed(1)}cm`);
+  return{W,H,inner:s};
+}
+function sidePanel(T,side,nameRun,badgeRuns){
+  const W=148.5,H=900,P=T.palette,R=rng(hashStr(T.name+'side'+side));const fk=FK(T);
+  let s=background(T,W,H,36);const te=topEdgeDepth(T,20);
+  const bcy=te+70,br=56;
+  s+=flowerBadge(T,W/2,bcy,br);
+  const bt=placeH(badgeRuns[side],W/2,bcy,[]);
+  const top=bcy+br*1.55+10;
+  const nm=placeV(nameRun,W/2,top);
+  const bottomH=T.bottom==='none'?0:22;
+  const mz={x1:14,y1:nm.box.y2+14,x2:W-14,y2:H-bottomH-10};
+  const ids=T.motifs.length?T.motifs:['star'];const pick=side===0?[ids[0],ids[2%ids.length]]:[ids[1%ids.length],ids[3%ids.length]];
+  if(mz.y2-mz.y1>40)s+=motifsInZone(T,mz,pick,R,64,side*2);
+  for(let i=0;i<5;i++){const y=top+R()*(nameRun.h);const x=R()<.5?12+R()*8:W-12-R()*8;s+=motifSVG('sparkle',x,y,10+R()*6,[P.colors[i%P.colors.length],'#fff'])}
+  s+=topEdge(T,W,20,R)+bottomEdge(T,W,H,22)+stitch(T,W,H,6,1);
+  s+=deco(bt,textStyle(P,'catch',badgeRuns[side].size))+deco(nm,textStyle(P,'name',nameRun.size));
+  return{W,H,inner:s};
+}
+function sidePair(T){
+  const fk=FK(T);
+  // 左右で同じ大きさ（小さい方に合わせる）
+  const r=fitV(T.copy.title,fk,104,108,560,-.04);
+  const b0=fitH(T.copy.side[0],fk,30,74,30),b1=fitH(T.copy.side[1],fk,30,74,30);const bs=Math.min(b0.size,b1.size);
+  const badges=[hrun(T.copy.side[0],fk,bs),hrun(T.copy.side[1],fk,bs)];
+  LOG.push(`サイドパネル：商品名（縦書き）1文字 ${(r.size/10).toFixed(1)}cm角・左右同サイズ`);
+  const L=sidePanel(T,0,r,badges),Rr=sidePanel(T,1,r,badges);
+  return{L,R:Rr};
+}
+function bottomDeco(T,n){
+  const W=900*n,H=170,P=T.palette,R=rng(hashStr(T.name+'btm'));const fk=FK(T);const seams=seamsOf(n);
+  let s=background(T,W,H,34);
+  s+=`<rect width="${W}" height="${H}" fill="${P.main}" opacity=".12"/>`;
+  const ed=T.top==='drip'?24:16;
+  const zoneM=n===1?190:260;
+  const nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62,-.02);
+  const bRun=fitH(T.copy.bottom,fk,22,W-zoneM*2,18);
+  const gap=10,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+4;
+  const nm=placeH(nameRun,W/2,yTop+nameRun.ink.h/2,seams);
+  const bt=placeH(bRun,W/2,nm.box.y2+gap+bRun.ink.h/2,seams);
+  const ids=T.motifs.length?T.motifs:['star'];
+  const L={x1:14,y1:ed+4,x2:Math.min(nm.box.x1,bt.box.x1)-14,y2:H-24},Rz={x1:Math.max(nm.box.x2,bt.box.x2)+14,y1:ed+4,x2:W-14,y2:H-24};
+  const k=Math.min(ids.length,n===1?3:4);
+  s+=motifsInZone(T,L,ids.slice(0,k),R,90,1)+motifsInZone(T,Rz,ids.slice(-k).reverse(),R,90,4);
+  // 上の縁：波形。下：レース
+  s+=scallopTop({...T,palette:{...P,main:P.sub}},W,ed);
+  s+=bottomEdge(T,W,H,20)+stitch(T,W,H,5,.9);
+  s+=deco(bt,textStyle(P,'catch',bRun.size))+deco(nm,textStyle(P,'name',nameRun.size));
+  LOG.push(`下段装飾：商品名の文字の高さ ${(nameRun.ink.h/10).toFixed(1)}cm`);
+  return{W,H,inner:s};
+}
+function railSheet(T){
+  const W=900,H=297,RH=20,N=14,P=T.palette,fk=FK(T);
+  const bgs=[P.main,P.sub,P.accent];
+  // 3種のラベルは同じ文字サイズに揃える
+  const lr=T.copy.rails.map(t=>fitH(t,fk,11,62,8.6));const ls=Math.min(...lr.map(r=>r.size));
+  const labels=T.copy.rails.map(t=>hrun(t,fk,ls));
+  const nameRun=fitH(T.copy.title,fk,16,158,12.5,-.02);
+  const one=(k,y0)=>{let s=`<rect x="0" y="${y0}" width="${W}" height="${RH}" fill="${bgs[k]}"/>`;
+    s+=`<rect x="0" y="${y0+1.2}" width="${W}" height="${RH-2.4}" fill="none" stroke="#fff" stroke-width=".45" stroke-dasharray="1.6 1.1" opacity=".9"/>`;
+    for(let r=0;r<3;r++){
+      const x0=r*300;const lb=labels[k];const pillW=lb.ink.w+12;const total=nameRun.ink.w+8+pillW;const sx=x0+150-total/2;
+      const nm=placeH(nameRun,sx+nameRun.ink.w/2,y0+RH/2,[]);
+      s+=deco(nm,{...textStyle(P,'white',nameRun.size),k:nameRun.size*.1});
+      const px=sx+nameRun.ink.w+8;s+=`<rect x="${px.toFixed(1)}" y="${y0+4.2}" width="${pillW.toFixed(1)}" height="${RH-8.4}" rx="${(RH-8.4)/2}" fill="#fff"/>`;
+      const lp=placeH(lb,px+pillW/2,y0+RH/2,[]);s+=lp.parts.map(p=>`<path d="${p.d}" fill="${P.ink}"/>`).join('');
+      s+=motifSVG(r%2?'star':'heart',x0+300,y0+RH/2,9,['#fff']);
+      s+=motifSVG('sparkle',x0+18,y0+RH/2,8,['#fff','#fff'])+motifSVG('sparkle',x0+282,y0+RH/2,8,['#fff','#fff']);
+    }
+    return s};
+  let s=`<rect width="${W}" height="${H}" fill="#fff"/>`;
+  for(let i=0;i<N;i++)s+=one(i%3,i*RH);
+  for(let i=1;i<=N;i++)s+=`<line x1="0" y1="${i*RH}" x2="${W}" y2="${i*RH}" stroke="#c8c8c8" stroke-width=".25"/>`;
+  s+=`<text x="6" y="${N*RH+10}" font-size="5" fill="#bbb" font-family="sans-serif">cut</text>`;
+  LOG.push(`カードレール：商品名の文字の高さ ${(nameRun.ink.h/10).toFixed(2)}cm／ラベル3種とも ${(labels[0].ink.h/10).toFixed(2)}cm前後（同サイズ）`);
+  return{W,H,inner:s,one};
+}
+function sideSheet(T,pair){
+  const W=297,H=900;return{W,H,inner:`<svg x="0" y="0" width="148.5" height="900" viewBox="0 0 148.5 900">${pair.L.inner}</svg><svg x="148.5" y="0" width="148.5" height="900" viewBox="0 0 148.5 900">${pair.R.inner}</svg><line x1="148.5" y1="0" x2="148.5" y2="900" stroke="#c8c8c8" stroke-width=".3"/>`};
+}
+function gondola(T,n,M){
+  const gx=148.5+40,gy=297+40,GW=900*n,GH=1750,W=GW+2*(148.5+40),H=297+GH+80;
+  let s=`<rect width="${W}" height="${H}" fill="#f4f2f5"/><rect x="0" y="${gy+GH}" width="${W}" height="${H-gy-GH}" fill="#ddd8df"/>`;
+  s+=`<rect x="${gx}" y="${gy}" width="${GW}" height="${GH}" fill="#e9e6ea" stroke="#b9b3bc" stroke-width="3"/>`;
+  for(let k=1;k<n;k++)s+=`<line x1="${gx+900*k}" y1="${gy}" x2="${gx+900*k}" y2="${gy+GH}" stroke="#b9b3bc" stroke-width="3"/>`;
+  const shelves=[400,760,1120,1440];const R=rng(5);
+  shelves.forEach((sy,si)=>{
+    const top=si===0?40:shelves[si-1]+40;
+    for(let x=gx+20;x<gx+GW-60;){const w=60+R()*60,h=Math.min(sy-top-30,140+R()*140);s+=`<rect x="${x}" y="${gy+sy-h}" width="${w-10}" height="${h}" rx="6" fill="${lighten(mcols(T,Math.floor(R()*6))[0],.55)}" stroke="#0001"/>`;x+=w}
+    s+=`<rect x="${gx}" y="${gy+sy}" width="${GW}" height="12" fill="#cfc9d2"/>`;
+    for(let k=0;k<n;k++)s+=`<svg x="${gx+900*k}" y="${gy+sy+12}" width="900" height="20" viewBox="0 0 900 20">${M.rail.one(si%3,0)}</svg>`;
+  });
+  s+=`<svg x="${gx}" y="${gy+GH-170}" width="${GW}" height="170" viewBox="0 0 ${GW} 170">${M.bottom.inner}</svg>`;
+  s+=`<svg x="${gx}" y="${gy-297}" width="${GW}" height="297" viewBox="0 0 ${GW} 297">${M.top.inner}</svg>`;
+  s+=`<svg x="${gx-148.5}" y="${gy}" width="148.5" height="900" viewBox="0 0 148.5 900">${M.side.L.inner}</svg>`;
+  s+=`<svg x="${gx+GW}" y="${gy}" width="148.5" height="900" viewBox="0 0 148.5 900">${M.side.R.inner}</svg>`;
+  return{W,H,inner:s};
+}
+function svgDoc(m,vb,px){const v=vb||[0,0,m.W,m.H];const wh=px?` width="${px[0]}" height="${px[1]}"`:'';return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${v.join(' ')}"${wh} preserveAspectRatio="none">${m.inner}</svg>`}
+
+/* ================= 画面 ================= */
+let THEME=null,MEDIA=null;
+function buildAll(){
+  LOG=[];MISSING.clear();UID=0;const n=THEME.gondolas||1;
+  const top=topBoard(THEME,n),side=sidePair(THEME),bottom=bottomDeco(THEME,n),rail=railSheet(THEME);
+  MEDIA={n,top,side,sideSheet:sideSheet(THEME,side),bottom,rail};MEDIA.gondola=gondola(THEME,n,MEDIA);
+  if(MISSING.size)LOG.push('⚠ フォントにない文字を省きました: '+[...MISSING].join(' '));
+}
+function renderPreview(){
+  buildAll();const n=MEDIA.n;
+  const items=[['gondola','完成図（ゴンドラ'+n+'台）',MEDIA.gondola],['top','トップボード '+(90*n)+'×29.7cm'+(n>1?'（2枚つなぎ）':''),MEDIA.top],['side','サイドパネル 左・右 14.85×90cm（長尺紙1枚から2枚）',MEDIA.sideSheet],['bottom','下段装飾 '+(90*n)+'×17cm',MEDIA.bottom],['rail','カードレール 90×2cm ×3種（長尺紙に14本）',MEDIA.rail]];
+  $('#prev').innerHTML=items.map(([k,t,m])=>`<div class="pv ${k}"><h4>${t}</h4>${svgDoc(m)}</div>`).join('');
+  if(n>1){const sv=$('#prev .top svg');sv.insertAdjacentHTML('beforeend',`<line x1="900" y1="0" x2="900" y2="297" stroke="#888" stroke-width="1.2" stroke-dasharray="6 5"/>`);const b=$('#prev .bottom svg');b.insertAdjacentHTML('beforeend',`<line x1="900" y1="0" x2="900" y2="170" stroke="#888" stroke-width="1.2" stroke-dasharray="6 5"/>`)}
+  $('#fit-log').textContent=LOG.join('\n');
+  $('#sec-prev').hidden=false;$('#sec-out').hidden=false;renderOutTable();
+}
+function renderOutTable(){
+  const n=MEDIA.n,rd=railDpi();
+  const rows=[['トップボード',(n>1?'2枚つなぎ・':'')+'90×29.7cm','長尺紙','150dpi'],['サイドパネル 左右','14.85×90cm ×2（1枚に2面）','長尺紙（縦）','150dpi'],['下段装飾',(n>1?'2枚つなぎ・':'')+'90×17cm','長尺紙','150dpi'],['カードレール ×3種','90×2cm ×14本','長尺紙','約'+rd+'dpi'],['完成図','—','確認用PNG','—'],['テーマ設計図','—','JSON','—']];
+  $('#out-tbl').innerHTML='<tr><th>媒体</th><th>仕上がり</th><th>用紙</th><th>解像度</th></tr>'+rows.map(r=>'<tr>'+r.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>').join('');
+}
+function renderCheck(){
+  const T=THEME;const st={ok:['ok','読めた'],ng:['ng','読めなかった'],unread:['mu','未読（ローカル）'],notread:['mu','未読（このAIはページを開けない）'],unknown:['mu','読めたか不明']};
+  let h=`<h3>印刷前の確認</h3><div><b>参照したページ</b></div><ul>${T.sources.length?T.sources.map(s=>`<li><span class="tag ${st[s.status]?.[0]||'mu'}">${st[s.status]?.[1]||s.status}</span><span class="tag">${esc(s.role)}</span><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></li>`).join(''):'<li>なし</li>'}</ul>`;
+  h+=`<div><b>選ばれたモチーフ</b>（すべてアプリ内蔵の汎用イラスト）</div><div class="chips">${T.motifs.map(id=>`<span class="chip on">${chipIcon(id)}${MOTIFS[id].ja}</span>`).join('')}</div>`;
+  if(T.facts&&T.facts.length)h+=`<div style="margin-top:8px"><b>AIが読み取った特徴</b></div><ul>${T.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`;
+  if(T.officialCopy)h+=`<div><b>公式キャッチコピー</b>：「${esc(T.officialCopy)}」 ${T.useOfficialCopy?'<span class="tag ok">使用する</span>':'<span class="tag mu">使わない</span>'}</div>`;
+  if(T.keywordHits&&T.keywordHits.length&&T.engine==='local')h+=`<div style="margin-top:6px"><b>キーワード辞書</b>：${T.keywordHits.map(esc).join('、')}</div>`;
+  if(T.rejected&&T.rejected.length)h+=`<div style="margin-top:8px"><b>アプリが弾いたもの</b></div><ul>${T.rejected.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
+  h+=`<div class="hint">公式の画像・ロゴはPOPに入れていません。商品画像は色の分析だけに使っています。</div>`;
+  $('#chk').innerHTML=h;
+}
+function chipIcon(id){return`<svg viewBox="0 0 100 100">${MOTIFS[id].f(['#ff5fa2','#a77bff','#38c7b5','#ffc61a'])}</svg>`}
+function fillThemeForm(){
+  const T=THEME;$('#sec-theme').hidden=false;
+  $('#th-engine').textContent={local:'（ローカルで作成）',openrouter:'（OpenRouterの無料モデルで作成）',gemini:'（Geminiで作成）',json:'（JSONから読み込み）'}[T.engine]||'';
+  $('#th-name').value=T.name;$('#th-mood').value=T.mood;$('#th-font').value=T.font;
+  const PL={bg1:'背景（上）',bg2:'背景（下）',main:'メイン',sub:'サブ',accent:'アクセント',ink:'縁取り'};
+  $('#th-pal').innerHTML=Object.entries(PL).map(([k,l])=>`<label>${l}<input type="color" data-k="${k}" value="${T.palette[k]}"></label>`).join('')+T.palette.colors.map((c,i)=>`<label>多色${i+1}<input type="color" data-c="${i}" value="${c}"></label>`).join('');
+  const opt=(o,v)=>Object.entries(o).map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('');
+  $('#th-pattern').innerHTML=opt(PATTERNS,T.pattern);$('#th-top').innerHTML=opt(TOPS,T.top);$('#th-bottom').innerHTML=opt(BOTTOMS,T.bottom);
+  $('#th-stitch').checked=!!T.stitch;$('#th-splash').checked=!!T.splash;
+  renderMotifChips();
+  const c=T.copy;$('#cp-title').value=c.title;$('#cp-catch').value=c.catch;$('#cp-sub').value=c.sub;$('#cp-sideL').value=c.side[0];$('#cp-sideR').value=c.side[1];$('#cp-bottom').value=c.bottom;$('#cp-r1').value=c.rails[0];$('#cp-r2').value=c.rails[1];$('#cp-r3').value=c.rails[2];
+  renderCopyAuto();renderCheck();showJSON();
+}
+function renderCopyAuto(){const c=THEME.copy;$('#cp-auto').innerHTML=`<div><b>キャッチ</b>：${esc(c.catch)}　<b>サブ</b>：${esc(c.sub)}</div><div><b>サイド</b>：${esc(c.side[0])}／${esc(c.side[1])}　<b>下段</b>：${esc(c.bottom)}</div><div><b>カードレール</b>：${c.rails.map(esc).join('／')}</div>`}
+function renderMotifChips(){$('#th-motifs').innerHTML=MOTIF_IDS.map(id=>`<button type="button" class="chip${THEME.motifs.includes(id)?' on':''}" data-m="${id}">${chipIcon(id)}${MOTIFS[id].ja}</button>`).join('')}
+function showJSON(){const{...t}=THEME;$('#th-json').textContent=JSON.stringify(t,null,1)}
+let rt=null;function rerender(){clearTimeout(rt);rt=setTimeout(()=>{showJSON();renderCopyAuto();renderCheck();renderPreview()},250)}
+function readForm(){
+  const T=THEME;T.name=$('#th-name').value;T.mood=$('#th-mood').value;T.font=$('#th-font').value;
+  document.querySelectorAll('#th-pal input').forEach(i=>{if(i.dataset.k)T.palette[i.dataset.k]=i.value;else T.palette.colors[+i.dataset.c]=i.value});
+  T.pattern=$('#th-pattern').value;T.top=$('#th-top').value;T.bottom=$('#th-bottom').value;T.stitch=$('#th-stitch').checked;T.splash=$('#th-splash').checked;
+  const c=T.copy;c.title=$('#cp-title').value;c.catch=$('#cp-catch').value;c.sub=$('#cp-sub').value;c.side=[$('#cp-sideL').value,$('#cp-sideR').value];c.bottom=$('#cp-bottom').value;c.rails=[$('#cp-r1').value,$('#cp-r2').value,$('#cp-r3').value];
+  const bad=[c.catch,c.sub,c.bottom,...c.side,...c.rails,c.title].flatMap(blockedIn);if(bad.length)setStatus('#gen-status','⚠ 文言にキャラクター名などが入っています（'+[...new Set(bad)].join('・')+'）。印刷前に見直してください','err');
+}
+function setStatus(sel,msg,cls=''){const e=$(sel);e.textContent=msg;e.className='status '+cls}
+
+/* ================= 書き出し ================= */
+const PX_LIMIT=()=>isIOS?16.7e6:40e6;
+function railDpi(){const a=(900/25.4)*(297/25.4);return Math.floor(Math.min(300,Math.sqrt(PX_LIMIT()/a)))}
+async function rasterize(svg,w,h,type,q){
+  const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+  try{const img=new Image();await new Promise((r,j)=>{img.onload=r;img.onerror=()=>j(new Error('画像の作成に失敗しました'));img.src=url});
+    if(img.decode)try{await img.decode()}catch(e){}
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
+    const b=await new Promise(r=>c.toBlob(r,type,q));c.width=c.height=1;if(!b)throw new Error('画像が大きすぎて作れませんでした');return b}
+  finally{URL.revokeObjectURL(url)}
+}
+async function jpegDpi(blob,dpi){const b=new Uint8Array(await blob.arrayBuffer());
+  if(b[2]===0xFF&&b[3]===0xE0&&b[6]===0x4A&&b[7]===0x46&&b[8]===0x49&&b[9]===0x46){b[13]=1;b[14]=dpi>>8;b[15]=dpi&255;b[16]=dpi>>8;b[17]=dpi&255;return b}
+  const a=new Uint8Array([0xFF,0xE0,0,16,0x4A,0x46,0x49,0x46,0,1,1,1,dpi>>8,dpi&255,dpi>>8,dpi&255,0,0]);const o=new Uint8Array(b.length+18);o.set(b.subarray(0,2));o.set(a,2);o.set(b.subarray(2),20);return o}
+function jobs(){
+  const n=MEDIA.n,J=[];const base=(THEME.copy.title||'POP').replace(/[\\/:*?"<>|\s]+/g,'');
+  for(let k=0;k<n;k++)J.push({f:`01_トップボード${n>1?'_'+(k+1)+'of'+n:''}_90x29.7cm.jpg`,m:MEDIA.top,vb:[900*k,0,900,297],mm:[900,297],dpi:150});
+  J.push({f:'02_サイドパネル_左右_14.85x90cm_長尺紙.jpg',m:MEDIA.sideSheet,vb:null,mm:[297,900],dpi:150});
+  for(let k=0;k<n;k++)J.push({f:`03_下段装飾${n>1?'_'+(k+1)+'of'+n:''}_90x17cm.jpg`,m:MEDIA.bottom,vb:[900*k,0,900,170],mm:[900,170],dpi:150});
+  J.push({f:'04_カードレール_3種x14本_長尺紙.jpg',m:MEDIA.rail,vb:null,mm:[900,297],dpi:railDpi()});
+  J.push({f:'05_完成図.png',m:MEDIA.gondola,vb:null,mm:[MEDIA.gondola.W,MEDIA.gondola.H],dpi:null,png:1.2});
+  return{J,base};
+}
+async function doExport(){
+  const btn=$('#btn-export');btn.disabled=true;const bar=$('#out-bar');
+  try{
+    renderPreview();const{J,base}=jobs();const zip=new JSZip();
+    for(let i=0;i<J.length;i++){const j=J[i];setStatus('#out-status',`作成中 ${i+1}/${J.length}：${j.f}`);bar.style.width=(i/J.length*100)+'%';
+      await new Promise(r=>setTimeout(r,30));
+      let w,h;if(j.png){w=Math.round(j.mm[0]*j.png);h=Math.round(j.mm[1]*j.png)}else{w=Math.round(j.mm[0]/25.4*j.dpi);h=Math.round(j.mm[1]/25.4*j.dpi)}
+      const svg=svgDoc(j.m,j.vb,[w,h]);
+      const blob=await rasterize(svg,w,h,j.png?'image/png':'image/jpeg',.95);
+      zip.file(j.f,j.png?blob:await jpegDpi(blob,j.dpi),{binary:true});
+    }
+    zip.file('テーマ設計図.json',JSON.stringify(THEME,null,1));
+    setStatus('#out-status','ZIPにまとめています…');bar.style.width='96%';
+    const out=await zip.generateAsync({type:'blob',compression:'STORE'});
+    const name=`売場POP_${base}_${new Date().toISOString().slice(0,10)}.zip`;
+    bar.style.width='100%';
+    if(DOWNLOADS){try{await DOWNLOADS.save({filename:name,data:out});setStatus('#out-status','書き出しました：'+name+'（'+(out.size/1048576).toFixed(1)+'MB）','ok')}catch(e){setStatus('#out-status',e.code==='declined'?'保存を取り消しました':'保存できませんでした（'+(e.message||e.code)+'）','err')}}
+    else{const a=document.createElement('a');a.href=URL.createObjectURL(out);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);setStatus('#out-status','書き出しました：'+name+'（'+(out.size/1048576).toFixed(1)+'MB）','ok')}
+  }catch(e){console.error(e);setStatus('#out-status','書き出しに失敗しました：'+e.message,'err')}
+  finally{btn.disabled=!$('#out-ok').checked}
+}
+
+/* ================= イベント ================= */
+async function generate(){
+  const inp=getInputs();store.set('inputs',{...inp,imageColors:undefined});
+  if(!inp.name){setStatus('#gen-status','商品名を入れてください','err');return}
+  const b=$('#btn-gen');b.disabled=true;setStatus('#gen-status',inp.engine==='local'?'作成中…':'AIに問い合わせ中…（数十秒かかることがあります）');
+  try{
+    let t;
+    if(inp.engine==='openrouter')t=await genOpenRouter(inp);
+    else if(inp.engine==='gemini')t=await genGemini(inp);
+    else t=localTheme(inp);
+    t=applyOfficialSwitch(t,inp);t.gondolas=inp.gondolas;THEME=t;
+    fillThemeForm();renderPreview();$('#out-ok').checked=false;$('#btn-export').disabled=true;
+    setStatus('#gen-status','テーマを作りました。下で確認・調整できます。'+(t.rejected.length?`（${t.rejected.length}件を弾きました）`:''),'ok');
+    $('#sec-theme').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){console.error(e);setStatus('#gen-status',(e.message||String(e))+(inp.engine!=='local'?'\n→ 「ローカル」に切り替えると、AIなしで作れます。':''),'err')}
+  finally{b.disabled=false}
+}
+function engineNote(){
+  const e=document.querySelector('input[name=eng]:checked').value;$('#gem-box').hidden=e!=='gemini';$('#or-box').hidden=e!=='openrouter';
+  const inClaude=typeof window.claude?.use==='function';
+  const warn=inClaude?'<br><b>※Claudeの中で開いているページからは外部AIに接続できません。</b>HTMLファイルを直接開くか、自分のサイト（Firebase Hostingなど）に置くと使えます。':'';
+  $('#eng-note').innerHTML={local:'AIを使わず、キーワード辞書と商品画像の色からテーマを作ります。無料・回数制限なし。ページは読みません。',
+    gemini:'Gemini（無料枠）が公式・参考ページを読んでテーマを作ります。おすすめ。'+warn,
+    openrouter:'OpenRouterの無料モデルがテーマを考えます。ページは読めないので、商品名・キーワード・色から考えます。'+warn}[e];
+}
+function init(){
+  // 前回の入力
+  const s=store.get('inputs',null);if(s){$('#in-name').value=s.name||'';$('#in-official').value=s.official||'';$('#in-refs').value=(s.refs||[]).join('\n');$('#in-kw').value=(s.keywords||[]).join('、');
+    if(s.strength)document.querySelector(`input[name=st][value=${s.strength}]`).checked=true;if(s.gondolas)document.querySelector(`input[name=gon][value="${s.gondolas}"]`).checked=true;$('#in-offcopy').checked=!!s.officialCopy}
+  const k=store.get('gemkey','');if(k){$('#gem-key').value=k;$('#gem-save').checked=true}
+  const ok2=store.get('orkey','');if(ok2){$('#or-key').value=ok2;$('#or-save').checked=true}$('#or-model').value=store.get('ormodel','openrouter/free');
+  $('#or-save').onchange=()=>{if($('#or-save').checked)store.set('orkey',$('#or-key').value.trim());else store.del('orkey')};
+  $('#or-key').onchange=()=>{if($('#or-save').checked)store.set('orkey',$('#or-key').value.trim())};
+  $('#or-model').onchange=()=>store.set('ormodel',$('#or-model').value.trim());$('#gem-model').value=store.get('gemmodel','gemini-flash-latest');
+  $('#kw-chips').innerHTML=KW_SUGGEST.map(w=>`<button type="button" class="chip" data-w="${w}">${w}</button>`).join('');
+  $('#kw-chips').onclick=e=>{const w=e.target.closest('[data-w]')?.dataset.w;if(!w)return;const cur=$('#in-kw').value.split(/[、,，\s　]+/).filter(Boolean);if(!cur.includes(w))cur.push(w);$('#in-kw').value=cur.join('、')};
+  $('#in-img').onchange=async e=>{const f=e.target.files[0];if(!f){IMG_COLORS=[];$('#img-sw').innerHTML='';return}
+    try{IMG_COLORS=await analyzeImage(f);$('#img-sw').innerHTML=IMG_COLORS.map(c=>`<span title="${c.hex} ${(c.ratio*100).toFixed(0)}%" style="background:${c.hex}"></span>`).join('')+'<span class="hint" style="width:auto;border:0;align-self:center">← 画像から取り出した色</span>'}catch(err){$('#img-sw').textContent='画像を読めませんでした'}};
+  document.querySelectorAll('input[name=eng]').forEach(r=>r.onchange=engineNote);engineNote();
+  $('#gem-save').onchange=()=>{if($('#gem-save').checked)store.set('gemkey',$('#gem-key').value.trim());else store.del('gemkey')};
+  $('#gem-key').onchange=()=>{if($('#gem-save').checked)store.set('gemkey',$('#gem-key').value.trim())};
+  $('#gem-model').onchange=()=>store.set('gemmodel',$('#gem-model').value.trim());
+  $('#btn-gen').onclick=generate;
+  $('#btn-reroll').onclick=()=>{if(!THEME)return;const inp=getInputs();const hits=localTheme(inp).keywordHits.map(n=>DICT.find(d=>d.name===n)).filter(Boolean);THEME.copySeed=(THEME.copySeed||0)+1;const t=THEME.copy.title;THEME.copy=autoCopy(t,hits,THEME.copySeed);if(THEME.useOfficialCopy&&THEME.officialCopy&&THEME.copySeed%2===0)THEME.copy.catch=Array.from(THEME.officialCopy).slice(0,16).join('');
+    const c=THEME.copy;$('#cp-title').value=c.title;$('#cp-catch').value=c.catch;$('#cp-sub').value=c.sub;$('#cp-sideL').value=c.side[0];$('#cp-sideR').value=c.side[1];$('#cp-bottom').value=c.bottom;$('#cp-r1').value=c.rails[0];$('#cp-r2').value=c.rails[1];$('#cp-r3').value=c.rails[2];rerender()};
+  $('#sec-theme').addEventListener('input',e=>{if(e.target.id==='json-in')return;readForm();rerender()});
+  $('#sec-theme').addEventListener('change',e=>{if(e.target.id==='json-in')return;readForm();rerender()});
+  $('#th-motifs').onclick=e=>{const id=e.target.closest('[data-m]')?.dataset.m;if(!id)return;const m=THEME.motifs;const i=m.indexOf(id);if(i>=0)m.splice(i,1);else{if(m.length>=8){setStatus('#gen-status','モチーフは8個までです','err');return}m.push(id)}renderMotifChips();rerender()};
+  $('#btn-json-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#th-json').textContent);$('#btn-json-copy').textContent='コピーしました'}catch(e){$('#btn-json-copy').textContent='コピーできません（長押しで選択）'}};
+  $('#btn-json-load').onclick=()=>{try{const raw=JSON.parse($('#json-in').value);const inp=getInputs();const t=sanitize(raw,{...inp,name:raw.copy?.title||inp.name},'json');t.gondolas=raw.gondolas||inp.gondolas;if(Array.isArray(raw.sources))t.sources=raw.sources;THEME=t;fillThemeForm();renderPreview();setStatus('#gen-status','JSONを読み込みました','ok')}catch(e){setStatus('#gen-status','JSONを読めませんでした：'+e.message,'err')}};
+  $('#out-ok').onchange=()=>{$('#btn-export').disabled=!$('#out-ok').checked};
+  $('#btn-export').onclick=doExport;
+  document.querySelectorAll('input[name=gon]').forEach(r=>r.onchange=()=>{if(THEME){THEME.gondolas=+r.value;renderPreview()}});
+}
+(async()=>{
+  try{await loadFonts()}catch(e){setStatus('#gen-status','フォントを読み込めませんでした：'+e.message,'err');return}
+  init();
+  if(typeof window.claude?.use==='function'){
+    claude.use('downloads').then(d=>{DOWNLOADS=d}).catch(()=>{});
+  }
+  if(new URLSearchParams(location.search).has('demo')){$('#in-name').value=$('#in-name').value||'ぐいぐい スライム';$('#in-kw').value=$('#in-kw').value||'ゆめかわ、キラキラ';generate()}
+  window.__ready=true;
+})();
+</script>
+</body>
+</html>
