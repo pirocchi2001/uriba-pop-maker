@@ -953,7 +953,7 @@ function bottomDeco(T,n){
   const zoneM=n===1?190:260;
   let nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62-ex,-.02);
   const bRun=fitH(T.copy.bottom,fk,22,W-zoneM*2,18);
-  const gap=10+ex,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+4;
+  const gap=22+ex,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+2;
   const nm=placeH(nameRun,W/2-ex/2,yTop+nameRun.ink.h/2-ex/2,seams);
   const bt=placeH(bRun,W/2,nm.box.y2+gap+bRun.ink.h/2,seams);
   const ids=T.motifs.length?T.motifs:['star'];
