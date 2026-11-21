@@ -67,12 +67,12 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
 .copyg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 @media (max-width:640px){.copyg{grid-template-columns:1fr}}
 .small{font-size:12px}
-</style>
+details.more{margin:12px 0 6px;padding:8px 12px;border:1px dashed var(--line,#e3d9ea);border-radius:10px;background:#fff}details.more>summary{cursor:pointer;font-weight:700;font-size:13px;color:#6b5b7b}</style>
 </head>
 <body>
 <header>
   <h1>インスパイア型 売場POPメーカー <span class="hint">試作版</span></h1>
-  <p>商品名・公式ページ・キーワード・商品画像の色から、公式デザインを真似しない「オリジナルテーマ」を作り、売場POP一式を印刷用JPEGで書き出します。</p>
+  <p>商品名を入れて「テーマを作る」だけで、売場POP一式を印刷用JPEGで書き出せます。</p>
 </header>
 <main>
 
@@ -80,42 +80,31 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
   <h2><span class="n">1</span>入力</h2>
   <label class="f">商品名 <span class="hint">（POPでいちばん大きく入る文字）</span></label>
   <input type="text" id="in-name" placeholder="例：ぐいぐい スライム">
-  <div class="row">
-    <div>
-      <label class="f">公式ページのURL <span class="hint">（主に参考にする）</span></label>
-      <input type="url" id="in-official" placeholder="https://...">
-    </div>
-    <div>
-      <label class="f">参考ページのURL <span class="hint">（雰囲気の参考・1行に1つ）</span></label>
-      <textarea id="in-refs" placeholder="https://...&#10;https://..."></textarea>
-    </div>
-  </div>
+  <label class="f">公式ページのURL <span class="hint">（あれば入力。主に参考にします）</span></label>
+  <input type="url" id="in-official" placeholder="https://...">
   <label class="f">イメージキーワード <span class="hint">（読点・スペース区切り）</span></label>
   <input type="text" id="in-kw" placeholder="例：ゆめかわ、キラキラ、コスメ">
   <div class="chips" id="kw-chips"></div>
-  <label class="f">商品画像 <span class="hint">（色の分析だけに使います。POPには入れません）</span></label>
-  <input type="file" id="in-img" accept="image/*">
-  <div class="sw" id="img-sw"></div>
-  <div class="row">
-    <div>
-      <label class="f">参考にする強さ</label>
-      <div class="seg" id="in-strength">
-        <label><input type="radio" name="st" value="low">控えめ</label>
-        <label><input type="radio" name="st" value="mid" checked>標準</label>
-        <label><input type="radio" name="st" value="high">強め</label>
-      </div>
-    </div>
-    <div>
-      <label class="f">ゴンドラ台数</label>
-      <div class="seg" id="in-gon">
-        <label><input type="radio" name="gon" value="1" checked>1台（90cm）</label>
-        <label><input type="radio" name="gon" value="2">2台（180cm）</label>
-      </div>
-    </div>
+  <label class="f">ゴンドラ台数</label>
+  <div class="seg" id="in-gon">
+    <label><input type="radio" name="gon" value="1" checked>1台（90cm）</label>
+    <label><input type="radio" name="gon" value="2">2台（180cm）</label>
   </div>
-  <label class="f"><input type="checkbox" id="in-offcopy"> 公式キャッチコピーを使ってよい <span class="hint">（オフのときはオリジナル文言だけにします）</span></label>
-
-  <label class="f"><input type="checkbox" id="in-genart" checked> 背景アートを自動で描く <span class="hint">（パレットの色で、やわらかいにじみ・ボケ・きらめきの背景を自動生成。通信なし・無料。物や人は描きません。オフにすると無地＋模様の背景になります）</span></label>
+  <details class="more"><summary>くわしい設定（参考ページ・商品画像・参考にする強さ など）</summary>
+    <label class="f">参考ページのURL <span class="hint">（雰囲気の参考・1行に1つ）</span></label>
+    <textarea id="in-refs" placeholder="https://...&#10;https://..."></textarea>
+    <label class="f">商品画像 <span class="hint">（色の分析だけに使います。POPには入れません）</span></label>
+    <input type="file" id="in-img" accept="image/*">
+    <div class="sw" id="img-sw"></div>
+    <label class="f">参考にする強さ</label>
+    <div class="seg" id="in-strength">
+      <label><input type="radio" name="st" value="low">控えめ</label>
+      <label><input type="radio" name="st" value="mid" checked>標準</label>
+      <label><input type="radio" name="st" value="high">強め</label>
+    </div>
+    <label class="f"><input type="checkbox" id="in-offcopy"> 公式キャッチコピーを使ってよい <span class="hint">（オフのときはオリジナル文言だけにします）</span></label>
+    <label class="f"><input type="checkbox" id="in-genart" checked> 背景アートを自動で描く <span class="hint">（オフにすると無地＋模様の背景になります）</span></label>
+  </details>
 
   <label class="f">テーマの作り方</label>
   <div class="seg" id="in-engine">
@@ -164,20 +153,24 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:#f6f2f
   <label class="f">配色</label>
   <div class="pal" id="th-pal"></div>
   <div class="row">
+    <div><label class="f">スタイル（世界観）</label><select id="th-style"></select></div>
+    <div><label class="f">サイドパネルの形</label><select id="th-sideshape"><option value="square">四角</option><option value="round">上下が丸いカーブ</option></select></div>
+  </div>
+  <details class="more"><summary>くわしい調整（書体・背景柄・縁の飾り・枠）</summary>
+  <div class="row">
     <div><label class="f">書体</label>
       <select id="th-font"><option value="rounded">丸ゴシック（M PLUS Rounded 1c）</option><option value="gothic">極太ゴシック（Noto Sans JP Black）</option></select></div>
-    <div><label class="f">スタイル（世界観）</label><select id="th-style"></select></div>
     <div><label class="f">背景柄</label><select id="th-pattern"></select></div>
   </div>
   <div class="row">
     <div><label class="f">上の縁の飾り</label><select id="th-top"></select></div>
     <div><label class="f">下の縁の飾り</label><select id="th-bottom"></select></div>
-    <div><label class="f">サイドパネルの形</label><select id="th-sideshape"><option value="square">四角</option><option value="round">上下が丸いカーブ</option></select></div>
   </div>
   <div class="row">
     <div><label class="f"><input type="checkbox" id="th-stitch"> 白いステッチ（点線）の枠</label></div>
     <div><label class="f"><input type="checkbox" id="th-splash"> イラストの後ろに絵の具のスプラッシュ</label></div>
   </div>
+  </details>
   <label class="f" hidden>モチーフ <span class="hint">（アプリ内蔵の汎用モチーフだけ。タップで選ぶ／外す・最大8個）</span></label>
   <div class="chips" id="th-motifs" hidden></div>
   <label class="f">文言 <span class="hint">（商品名とキーワードから自動で決めます）</span></label>
