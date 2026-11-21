@@ -890,17 +890,19 @@ function topBoard(T,n){
   let s=background(T,W,H,44);
   const te=topEdgeDepth(T,26);const bh=T.bottom==='none'?0:26;
   // 商品名：文字の高さ約9cmを目安。いちばん大きく
-  const zoneM=n===1?125:200;
-  let nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92-ex,-.02);
-  const ny=Math.max(te+48,150)+12;
-  const nm=placeH(nameRun,W/2-ex/2,ny-ex/2,seams);   // 長い影は右下に伸びるので、見た目の中心に合わせて左上へ寄せる
-  // キャッチ（上・小さめ）
+  // 商品名は用紙の高さの半分を目安に、入る限り最大にする（余白は最小限）
+  const zoneM=n===1?45:80;
+  const maxH=Math.min(H*.5,H-te-bh-14-84);
+  let nameRun=fitH(T.copy.title,fk,230,W-zoneM*2,maxH,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,230,W-zoneM*2-ex,maxH-ex,-.02);
   const catchRun=fitH(T.copy.catch,fk,36,Math.min(W-zoneM*2,600*n),Math.min(30,nameRun.ink.h*.38),0);
+  const ny=te+4+catchRun.ink.h+8+nameRun.ink.h/2;
+  const nm=placeH(nameRun,W/2-ex/2,ny,seams);   // 長い影は右下に伸びるので、見た目の中心に合わせて左上へ寄せる
+  // キャッチ（上・小さめ）
   const cy=Math.max(te+4+catchRun.ink.h/2,nm.box.y1-catchRun.ink.h/2-10);
   const ct=placeH(catchRun,W/2,cy,seams);
   // サブコピー（リボン）
   const subRun=fitH(T.copy.sub,fk,26,Math.min(W-zoneM*2-60,520*n),22,0);
-  const sy=Math.min(H-bh-20,nm.box.y2+26+ex);
+  const sy=Math.min(H-bh-20,nm.box.y2+22+ex);
   const sb=placeH(subRun,W/2,sy,seams);
   // モチーフ（商品名の左右の区域）
   const ids=T.motifs.length?T.motifs:['star'];const half=Math.ceil(ids.length/2);
@@ -938,7 +940,7 @@ function sidePanel(T,side,nameRun,badgeRuns){
 function sidePair(T){
   const fk=FK(T);
   // 左右で同じ大きさ（小さい方に合わせる）
-  const r=fitV(T.copy.title,fk,104,108,560,-.04);
+  const r=fitV(T.copy.title,fk,130,98,640,-.04);
   const b0=fitH(T.copy.side[0],fk,30,74,30),b1=fitH(T.copy.side[1],fk,30,74,30);const bs=Math.min(b0.size,b1.size);
   const badges=[hrun(T.copy.side[0],fk,bs),hrun(T.copy.side[1],fk,bs)];
   LOG.push(`サイドパネル：商品名（縦書き）1文字 ${(r.size/10).toFixed(1)}cm角・左右同サイズ`);
@@ -950,10 +952,11 @@ function bottomDeco(T,n){
   let s=background(T,W,H,34);
   s+=`<rect width="${W}" height="${H}" fill="${P.main}" opacity=".12"/>`;
   const ed=T.top==='drip'?24:16;
-  const zoneM=n===1?190:260;
-  let nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62-ex,-.02);
+  const zoneM=n===1?60:100;
+  const mh=Math.min(H*.5,H-ed-22-18-16-18);
+  let nameRun=fitH(T.copy.title,fk,200,W-zoneM*2,mh,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,200,W-zoneM*2-ex,mh-ex,-.02);
   const bRun=fitH(T.copy.bottom,fk,22,W-zoneM*2,18);
-  const gap=22+ex,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+2;
+  const gap=16+ex,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+6;
   const nm=placeH(nameRun,W/2-ex/2,yTop+nameRun.ink.h/2-ex/2,seams);
   const bt=placeH(bRun,W/2,nm.box.y2+gap+bRun.ink.h/2,seams);
   const ids=T.motifs.length?T.motifs:['star'];
