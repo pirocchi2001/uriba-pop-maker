@@ -893,7 +893,7 @@ function topBoard(T,n){
   const zoneM=n===1?125:200;
   let nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,108,W-zoneM*2,92-ex,-.02);
   const ny=Math.max(te+48,150)+12;
-  const nm=placeH(nameRun,W/2,ny,seams);
+  const nm=placeH(nameRun,W/2-ex/2,ny-ex/2,seams);   // 長い影は右下に伸びるので、見た目の中心に合わせて左上へ寄せる
   // キャッチ（上・小さめ）
   const catchRun=fitH(T.copy.catch,fk,36,Math.min(W-zoneM*2,600*n),Math.min(30,nameRun.ink.h*.38),0);
   const cy=Math.max(te+4+catchRun.ink.h/2,nm.box.y1-catchRun.ink.h/2-10);
@@ -921,7 +921,7 @@ function sidePanel(T,side,nameRun,badgeRuns){
   s+=flowerBadge(T,W/2,bcy,br);
   const bt=placeH(badgeRuns[side],W/2,bcy,[]);
   const top=bcy+br*1.55+10;
-  const nm=placeV(nameRun,W/2,top);
+  const sx=shadowExtra(P,nameRun.size);const nm=placeV(nameRun,W/2-sx/2,top-sx/2);
   const bottomH=T.bottom==='none'?0:22;
   const mz={x1:14,y1:nm.box.y2+14,x2:W-14,y2:H-bottomH-10};
   const ids=T.motifs.length?T.motifs:['star'];const pick=side===0?[ids[0],ids[2%ids.length]]:[ids[1%ids.length],ids[3%ids.length]];
@@ -954,7 +954,7 @@ function bottomDeco(T,n){
   let nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62,-.02);const ex=shadowExtra(P,nameRun.size);if(ex>0)nameRun=fitH(T.copy.title,fk,80,W-zoneM*2,62-ex,-.02);
   const bRun=fitH(T.copy.bottom,fk,22,W-zoneM*2,18);
   const gap=10+ex,total=nameRun.ink.h+gap+bRun.ink.h;const yTop=ed+(H-ed-22-total)/2+4;
-  const nm=placeH(nameRun,W/2,yTop+nameRun.ink.h/2,seams);
+  const nm=placeH(nameRun,W/2-ex/2,yTop+nameRun.ink.h/2-ex/2,seams);
   const bt=placeH(bRun,W/2,nm.box.y2+gap+bRun.ink.h/2,seams);
   const ids=T.motifs.length?T.motifs:['star'];
   const L={x1:14,y1:ed+4,x2:Math.min(nm.box.x1,bt.box.x1)-14,y2:H-24},Rz={x1:Math.max(nm.box.x2,bt.box.x2)+14,y1:ed+4,x2:W-14,y2:H-24};
