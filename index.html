@@ -112,6 +112,7 @@ details.more{margin:12px 0 6px;padding:8px 12px;border:1px dashed var(--line,#e3
     <label><input type="radio" name="eng" value="gemini">Gemini（無料枠）</label>
     <label><input type="radio" name="eng" value="openrouter">OpenRouter（無料）</label>
     <label><input type="radio" name="eng" value="groq">Groq（無料）</label>
+    <label><input type="radio" name="eng" value="claude">Claude（有料）</label>
   </div>
   <div class="eng" id="eng-note"></div>
   <div class="eng" id="gem-box" hidden>
@@ -129,6 +130,14 @@ details.more{margin:12px 0 6px;padding:8px 12px;border:1px dashed var(--line,#e3
     <label class="f">モデル名</label>
     <input type="text" id="or-model" value="openrouter/free">
     <div class="hint">「openrouter/free」は無料モデルの中から自動で選んで使います（料金0円、キーは <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai</a> で無料発行）。回数に上限があり、送った内容が改善に使われることがあります。公式・参考ページは、無料の閲覧サービス（r.jina.ai）で本文を読み取って渡します（URLがそのサービスに送られます）。</div>
+  </div>
+  <div class="eng" id="claude-box" hidden>
+    <label class="f" style="margin-top:0">Claude APIキー</label>
+    <input type="password" id="claude-key" placeholder="sk-ant-..." autocomplete="off">
+    <label class="small"><input type="checkbox" id="claude-save"> この端末に保存する</label>
+    <label class="f">モデル名</label>
+    <input type="text" id="claude-model" value="claude-haiku-5-5">
+    <div class="hint">Anthropic の Claude で作ります（キーは <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> で発行。<b>有料</b>で、1回あたり数円程度）。日本語の文言と配色の判断が安定します。公式・参考ページは、無料の閲覧サービス（r.jina.ai）で本文を読み取って渡します（URLがそのサービスに送られます）。キーはこの端末のブラウザから Anthropic にだけ送られます。</div>
   </div>
   <div class="eng" id="groq-box" hidden>
     <label class="f" style="margin-top:0">Groq APIキー</label>
@@ -740,6 +749,20 @@ async function genGroq(inp){
   t.facts.unshift('使われたモデル: '+(j.model||model));
   markSources(t,inp.pages);return t;
 }
+async function genClaude(inp){
+  const key=$('#claude-key').value.trim();if(!key)throw new Error('Claude APIキーを入力してください');
+  if(!/^sk-ant-/.test(key))throw new Error('Claudeのキーは「sk-ant-」で始まります。入力したキーを確認してください');
+  const model=$('#claude-model').value.trim()||'claude-haiku-5-5';
+  let res;
+  try{res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:3000,temperature:.8,messages:[{role:'user',content:buildPrompt(inp,false)}]})})}
+  catch(e){throw new Error('Claudeに接続できませんでした。公開ページか、HTMLファイルを直接開いて使ってください。')}
+  const j=await res.json().catch(()=>({}));
+  if(!res.ok){const m=j.error?.message||res.status;throw new Error('Claudeのエラー: '+m+(res.status===401?'\n（キーが正しくないか、無効です）':'')+(res.status===404?'\n（モデル名が見つかりません。console.anthropic.com で確認し、モデル名欄に入力してください）':'')+(res.status===429?'\n（回数の上限です。時間をおいてください）':''))}
+  const text=(j.content||[]).map(c=>c.text||'').join('');
+  const raw=parseJSONLoose(text);const t=sanitize(raw,inp,'claude');
+  t.facts.unshift('使われたモデル: '+(j.model||model));
+  markSources(t,inp.pages);return t;
+}
 async function genGemini(inp){
   const key=$('#gem-key').value.trim();if(!key)throw new Error('Gemini APIキーを入力してください');
   const model=($('#gem-model').value.trim()||'gemini-flash-latest').replace(/^models\//,'');
@@ -1046,7 +1069,7 @@ function renderCheck(){
 function chipIcon(id){return`<svg viewBox="0 0 100 100">${MOTIFS[id].f(['#ff5fa2','#a77bff','#38c7b5','#ffc61a'])}</svg>`}
 function fillThemeForm(){
   const T=THEME;$('#sec-theme').hidden=false;
-  $('#th-engine').textContent={local:'（ローカルで作成）',openrouter:'（OpenRouterの無料モデルで作成）',groq:'（Groqで作成）',gemini:'（Geminiで作成）',json:'（JSONから読み込み）'}[T.engine]||'';
+  $('#th-engine').textContent={local:'（ローカルで作成）',openrouter:'（OpenRouterの無料モデルで作成）',groq:'（Groqで作成）',claude:'（Claudeで作成）',gemini:'（Geminiで作成）',json:'（JSONから読み込み）'}[T.engine]||'';
   $('#th-name').value=T.name;$('#th-mood').value=T.mood;$('#th-font').value=T.font;
   const PL={bg1:'背景（上）',bg2:'背景（下）',main:'メイン',sub:'サブ',accent:'アクセント',ink:'縁取り'};
   $('#th-pal').innerHTML=Object.entries(PL).map(([k,l])=>`<label>${l}<input type="color" data-k="${k}" value="${T.palette[k]}"></label>`).join('')+T.palette.colors.map((c,i)=>`<label>多色${i+1}<input type="color" data-c="${i}" value="${c}"></label>`).join('');
@@ -1122,11 +1145,12 @@ async function generate(){
   const b=$('#btn-gen');b.disabled=true;setStatus('#gen-status',inp.engine==='local'?'作成中…':'AIに問い合わせ中…（数十秒かかることがあります）');
   try{
     let t;
-    if(inp.engine==='groq'||inp.engine==='openrouter'){
+    if(inp.engine==='groq'||inp.engine==='openrouter'||inp.engine==='claude'){
       if(inp.official||inp.refs.length){setStatus('#gen-status','公式・参考ページを読み取り中…（無料の閲覧サービス経由・数秒〜30秒）');inp.pages=await gatherPages(inp);setStatus('#gen-status','AIに問い合わせ中…（数十秒かかることがあります）')}
     }
     if(inp.engine==='openrouter')t=await genOpenRouter(inp);
     else if(inp.engine==='groq')t=await genGroq(inp);
+    else if(inp.engine==='claude')t=await genClaude(inp);
     else if(inp.engine==='gemini')t=await genGemini(inp);
     else t=localTheme(inp);
     t.art=$('#in-genart').checked;
@@ -1138,12 +1162,13 @@ async function generate(){
   finally{b.disabled=false}
 }
 function engineNote(){
-  const e=document.querySelector('input[name=eng]:checked').value;$('#gem-box').hidden=e!=='gemini';$('#or-box').hidden=e!=='openrouter';$('#groq-box').hidden=e!=='groq';
+  const e=document.querySelector('input[name=eng]:checked').value;$('#gem-box').hidden=e!=='gemini';$('#or-box').hidden=e!=='openrouter';$('#groq-box').hidden=e!=='groq';$('#claude-box').hidden=e!=='claude';
   const inClaude=typeof window.claude?.use==='function';
   const warn=inClaude?'<br><b>※Claudeの中で開いているページからは外部AIに接続できません。</b>HTMLファイルを直接開くか、自分のサイト（Firebase Hostingなど）に置くと使えます。':'';
   $('#eng-note').innerHTML={local:'AIを使わず、キーワード辞書と商品画像の色からテーマを作ります。無料・回数制限なし。ページは読みません。',
     gemini:'Gemini（無料枠）が公式・参考ページを読んでテーマを作ります。おすすめ。'+warn,
     groq:'Groqの無料モデルがテーマを考えます。高速です。公式・参考ページは、無料の閲覧サービス経由で本文を読み取って使います（読めないページは商品名・キーワード・色から推測）。'+warn,
+    claude:'Claude（有料API）がテーマを考えます。文言・配色の質が安定します。公式・参考ページは、無料の閲覧サービス経由で本文を読み取って使います。'+warn,
     openrouter:'OpenRouterの無料モデルがテーマを考えます。公式・参考ページは、無料の閲覧サービス経由で本文を読み取って使います（読めないページは商品名・キーワード・色から推測）。'+warn}[e];
 }
 function init(){
@@ -1157,6 +1182,10 @@ function init(){
   const gk=store.get('groqkey','');if(gk){$('#groq-key').value=gk;$('#groq-save').checked=true}$('#groq-model').value=store.get('groqmodel','llama-3.3-70b-versatile');
   $('#groq-save').onchange=()=>{if($('#groq-save').checked)store.set('groqkey',$('#groq-key').value.trim());else store.del('groqkey')};
   $('#groq-key').onchange=()=>{if($('#groq-save').checked)store.set('groqkey',$('#groq-key').value.trim())};
+  const ck=store.get('claudekey','');if(ck){$('#claude-key').value=ck;$('#claude-save').checked=true}$('#claude-model').value=store.get('claudemodel','claude-haiku-5-5');
+  $('#claude-save').onchange=()=>{if($('#claude-save').checked)store.set('claudekey',$('#claude-key').value.trim());else store.del('claudekey')};
+  $('#claude-key').onchange=()=>{if($('#claude-save').checked)store.set('claudekey',$('#claude-key').value.trim())};
+  $('#claude-model').onchange=()=>store.set('claudemodel',$('#claude-model').value.trim());
   $('#groq-model').onchange=()=>store.set('groqmodel',$('#groq-model').value.trim());
   $('#or-model').onchange=()=>store.set('ormodel',$('#or-model').value.trim());$('#gem-model').value=store.get('gemmodel','gemini-flash-latest');
   $('#kw-chips').innerHTML=KW_SUGGEST.map(w=>`<button type="button" class="chip" data-w="${w}">${w}</button>`).join('');
