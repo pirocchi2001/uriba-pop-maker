@@ -113,6 +113,7 @@ details.more{margin:12px 0 6px;padding:8px 12px;border:1px dashed var(--line,#e3
     <label><input type="radio" name="eng" value="openrouter">OpenRouter（無料）</label>
     <label><input type="radio" name="eng" value="groq">Groq（無料）</label>
     <label><input type="radio" name="eng" value="claude">Claude（有料）</label>
+    <label><input type="radio" name="eng" value="manual">Claude.ai（貼り付け）</label>
   </div>
   <div class="eng" id="eng-note"></div>
   <div class="eng" id="gem-box" hidden>
@@ -130,6 +131,16 @@ details.more{margin:12px 0 6px;padding:8px 12px;border:1px dashed var(--line,#e3
     <label class="f">モデル名</label>
     <input type="text" id="or-model" value="openrouter/free">
     <div class="hint">「openrouter/free」は無料モデルの中から自動で選んで使います（料金0円、キーは <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai</a> で無料発行）。回数に上限があり、送った内容が改善に使われることがあります。公式・参考ページは、無料の閲覧サービス（r.jina.ai）で本文を読み取って渡します（URLがそのサービスに送られます）。</div>
+  </div>
+  <div class="eng" id="man-box" hidden>
+    <div class="hint" style="margin-bottom:6px">① 「テーマを作る」を押すと、依頼文を作ってコピーします。② <a href="https://claude.ai/new" target="_blank" rel="noopener">claude.ai</a> に貼り付けて送ります（公式ページは Claude が自分で読めます）。③ 返ってきた文章（JSON）を下に貼り付けて、「貼り付けた結果でテーマを作る」を押します。APIキーは不要で、お使いの Claude のプランの範囲で使えます。</div>
+    <div id="man-step" hidden>
+      <label class="f" style="margin-top:0">依頼文 <button type="button" class="btn sub" id="man-copy" style="padding:4px 10px">もう一度コピー</button></label>
+      <textarea id="man-prompt" readonly style="height:90px"></textarea>
+      <label class="f">Claude の返答（JSON）をここに貼り付け</label>
+      <textarea id="man-in" placeholder="{ ... } の形の返答を貼り付け"></textarea>
+      <div class="btns"><button type="button" class="btn" id="man-apply">貼り付けた結果でテーマを作る</button></div>
+    </div>
   </div>
   <div class="eng" id="claude-box" hidden>
     <label class="f" style="margin-top:0">Claude APIキー</label>
@@ -1069,7 +1080,7 @@ function renderCheck(){
 function chipIcon(id){return`<svg viewBox="0 0 100 100">${MOTIFS[id].f(['#ff5fa2','#a77bff','#38c7b5','#ffc61a'])}</svg>`}
 function fillThemeForm(){
   const T=THEME;$('#sec-theme').hidden=false;
-  $('#th-engine').textContent={local:'（ローカルで作成）',openrouter:'（OpenRouterの無料モデルで作成）',groq:'（Groqで作成）',claude:'（Claudeで作成）',gemini:'（Geminiで作成）',json:'（JSONから読み込み）'}[T.engine]||'';
+  $('#th-engine').textContent={local:'（ローカルで作成）',openrouter:'（OpenRouterの無料モデルで作成）',groq:'（Groqで作成）',claude:'（Claudeで作成）',manual:'（Claude.aiの貼り付けで作成）',gemini:'（Geminiで作成）',json:'（JSONから読み込み）'}[T.engine]||'';
   $('#th-name').value=T.name;$('#th-mood').value=T.mood;$('#th-font').value=T.font;
   const PL={bg1:'背景（上）',bg2:'背景（下）',main:'メイン',sub:'サブ',accent:'アクセント',ink:'縁取り'};
   $('#th-pal').innerHTML=Object.entries(PL).map(([k,l])=>`<label>${l}<input type="color" data-k="${k}" value="${T.palette[k]}"></label>`).join('')+T.palette.colors.map((c,i)=>`<label>多色${i+1}<input type="color" data-c="${i}" value="${c}"></label>`).join('');
@@ -1139,12 +1150,31 @@ async function doExport(){
 }
 
 /* ================= イベント ================= */
+let MAN_INP=null;
+function finishTheme(t,inp){
+  t.art=$('#in-genart').checked;
+  t=applyOfficialSwitch(t,inp);t.gondolas=inp.gondolas;THEME=t;
+  fillThemeForm();renderPreview();$('#out-ok').checked=false;$('#btn-export').disabled=true;
+  setStatus('#gen-status','テーマを作りました。下で確認・調整できます。'+(t.rejected.length?`（${t.rejected.length}件を弾きました）`:''),'ok');
+  $('#sec-theme').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function applyManual(){
+  try{
+    const inp=MAN_INP||getInputs();const txt=$('#man-in').value.trim();if(!txt)throw new Error('Claude の返答を貼り付けてください');
+    const t=sanitize(parseJSONLoose(txt),inp,'manual');t.facts.unshift('Claude.ai（貼り付け）で作成');finishTheme(t,inp);
+  }catch(e){setStatus('#gen-status','貼り付けた内容を読めませんでした: '+(e.message||e)+'\n→ { から } までのJSONだけが入っているか確認してください。','err')}
+}
 async function generate(){
   const inp=getInputs();store.set('inputs',{...inp,imageColors:undefined});
   if(!inp.name){setStatus('#gen-status','商品名を入れてください','err');return}
   const b=$('#btn-gen');b.disabled=true;setStatus('#gen-status',inp.engine==='local'?'作成中…':'AIに問い合わせ中…（数十秒かかることがあります）');
   try{
     let t;
+    if(inp.engine==='manual'){
+      const pr=buildPrompt(inp,true);$('#man-prompt').value=pr;$('#man-step').hidden=false;MAN_INP=inp;
+      let ok=false;try{await navigator.clipboard.writeText(pr);ok=true}catch(e){}
+      setStatus('#gen-status',ok?'依頼文をコピーしました。claude.ai に貼り付けて送り、返答を下の欄に貼ってください。':'下の依頼文を全部コピーして claude.ai に貼り付け、返答を下の欄に貼ってください。','ok');
+      $('#man-in').focus();return}
     if(inp.engine==='groq'||inp.engine==='openrouter'||inp.engine==='claude'){
       if(inp.official||inp.refs.length){setStatus('#gen-status','公式・参考ページを読み取り中…（無料の閲覧サービス経由・数秒〜30秒）');inp.pages=await gatherPages(inp);setStatus('#gen-status','AIに問い合わせ中…（数十秒かかることがあります）')}
     }
@@ -1153,21 +1183,18 @@ async function generate(){
     else if(inp.engine==='claude')t=await genClaude(inp);
     else if(inp.engine==='gemini')t=await genGemini(inp);
     else t=localTheme(inp);
-    t.art=$('#in-genart').checked;
-    t=applyOfficialSwitch(t,inp);t.gondolas=inp.gondolas;THEME=t;
-    fillThemeForm();renderPreview();$('#out-ok').checked=false;$('#btn-export').disabled=true;
-    setStatus('#gen-status','テーマを作りました。下で確認・調整できます。'+(t.rejected.length?`（${t.rejected.length}件を弾きました）`:''),'ok');
-    $('#sec-theme').scrollIntoView({behavior:'smooth',block:'start'});
+    finishTheme(t,inp);
   }catch(e){console.error(e);setStatus('#gen-status',(e.message||String(e))+(inp.engine!=='local'?'\n→ 「ローカル」に切り替えると、AIなしで作れます。':''),'err')}
   finally{b.disabled=false}
 }
 function engineNote(){
-  const e=document.querySelector('input[name=eng]:checked').value;$('#gem-box').hidden=e!=='gemini';$('#or-box').hidden=e!=='openrouter';$('#groq-box').hidden=e!=='groq';$('#claude-box').hidden=e!=='claude';
+  const e=document.querySelector('input[name=eng]:checked').value;$('#gem-box').hidden=e!=='gemini';$('#or-box').hidden=e!=='openrouter';$('#groq-box').hidden=e!=='groq';$('#claude-box').hidden=e!=='claude';$('#man-box').hidden=e!=='manual';
   const inClaude=typeof window.claude?.use==='function';
   const warn=inClaude?'<br><b>※Claudeの中で開いているページからは外部AIに接続できません。</b>HTMLファイルを直接開くか、自分のサイト（Firebase Hostingなど）に置くと使えます。':'';
   $('#eng-note').innerHTML={local:'AIを使わず、キーワード辞書と商品画像の色からテーマを作ります。無料・回数制限なし。ページは読みません。',
     gemini:'Gemini（無料枠）が公式・参考ページを読んでテーマを作ります。おすすめ。'+warn,
     groq:'Groqの無料モデルがテーマを考えます。高速です。公式・参考ページは、無料の閲覧サービス経由で本文を読み取って使います（読めないページは商品名・キーワード・色から推測）。'+warn,
+    manual:'APIキー不要。依頼文を claude.ai に貼り付けて、返答をここに貼り戻します（一手間かかります）。',
     claude:'Claude（有料API）がテーマを考えます。文言・配色の質が安定します。公式・参考ページは、無料の閲覧サービス経由で本文を読み取って使います。'+warn,
     openrouter:'OpenRouterの無料モデルがテーマを考えます。公式・参考ページは、無料の閲覧サービス経由で本文を読み取って使います（読めないページは商品名・キーワード・色から推測）。'+warn}[e];
 }
@@ -1185,6 +1212,7 @@ function init(){
   const ck=store.get('claudekey','');if(ck){$('#claude-key').value=ck;$('#claude-save').checked=true}$('#claude-model').value=store.get('claudemodel','claude-haiku-5-5');
   $('#claude-save').onchange=()=>{if($('#claude-save').checked)store.set('claudekey',$('#claude-key').value.trim());else store.del('claudekey')};
   $('#claude-key').onchange=()=>{if($('#claude-save').checked)store.set('claudekey',$('#claude-key').value.trim())};
+  $('#man-apply').onclick=applyManual;$('#man-copy').onclick=()=>navigator.clipboard.writeText($('#man-prompt').value).then(()=>setStatus('#gen-status','コピーしました','ok'),()=>{$('#man-prompt').select()});
   $('#claude-model').onchange=()=>store.set('claudemodel',$('#claude-model').value.trim());
   $('#groq-model').onchange=()=>store.set('groqmodel',$('#groq-model').value.trim());
   $('#or-model').onchange=()=>store.set('ormodel',$('#or-model').value.trim());$('#gem-model').value=store.get('gemmodel','gemini-flash-latest');
